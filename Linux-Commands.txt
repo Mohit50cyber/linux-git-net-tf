@@ -1,0 +1,520 @@
+LINUX COMMANDS — BASIC TO ADVANCED | HINGLISH REFERENCE
+Ubuntu/Debian aur RHEL family | DevOps / Cloud / Production troubleshooting
+Examples independently run karo; placeholders aur device names verify karo.
+# ke baad explanation hai. sudo sirf authorized admin operations ke liye.
+WARNING: rm, mkfs, dd, fdisk, LVM removal, firewall aur reboot commands production mein bina approval mat chalana.
+
+=== 01 FILE SYSTEM AND NAVIGATION ===
+pwd # Current working directory ka full path dikhata hai
+ls # Current directory ki files dikhata hai
+ls -la # Hidden files aur detailed permissions dikhata hai
+ls -lh # File sizes human-readable format mein dikhata hai
+ls -ltr # Modification time ke hisaab se oldest first listing
+ls -R # Subdirectories ke andar recursively listing
+cd /var/log # Absolute path par directory change karta hai
+cd .. # Parent directory mein jata hai
+cd - # Previous working directory mein jata hai
+cd ~ # Home directory mein jata hai
+tree -L 2 # Directory structure do levels tak dikhata hai
+mkdir -p lab/data # Parent directories ke saath directory banata hai
+touch lab/file.txt # Empty file banata hai ya timestamp update karta hai
+cp -i file.txt copy.txt # File copy karta hai; overwrite se pehle poochta hai
+cp -a lab lab-backup # Directory ko metadata preserve karke copy karta hai
+mv -i copy.txt renamed.txt # File rename ya move karta hai
+rm -i renamed.txt # Confirmation ke saath file delete karta hai
+rmdir emptydir # Sirf empty directory delete karta hai
+rm -rI lab-backup # Directory recursively delete karta hai; pehle verify karo
+ln file.txt hardlink # Same inode ka hard link banata hai
+ln -s /var/log/syslog loglink # Target path ka symbolic link banata hai
+readlink -f loglink # Symlink ka resolved absolute path dikhata hai
+stat file.txt # Inode, permissions, size aur timestamps dikhata hai
+file file.txt # File content ka detected type batata hai
+basename /var/log/syslog # Path ka last component nikalta hai
+dirname /var/log/syslog # Parent path nikalta hai
+realpath file.txt # Canonical absolute path dikhata hai
+
+=== 02 FILE CONTENT AND TEXT PROCESSING ===
+cat file.txt # Puri file ka content dikhata hai
+tac file.txt # Lines reverse order mein dikhata hai
+less /var/log/syslog # Large file page by page read karta hai
+head -n 20 file.txt # Pehli 20 lines dikhata hai
+tail -n 20 file.txt # Last 20 lines dikhata hai
+tail -F /var/log/syslog # Log rotation ke baad bhi file follow karta hai
+wc -l file.txt # Lines count karta hai
+wc -w file.txt # Words count karta hai
+nl -ba file.txt # Sabhi lines ko number karta hai
+sort file.txt # Lines alphabetical order mein sort karta hai
+sort -n numbers.txt # Numbers numeric order mein sort karta hai
+sort file.txt | uniq -c # Duplicate lines ki frequency dikhata hai
+cut -d: -f1 /etc/passwd # Colon-separated first field nikalta hai
+paste a.txt b.txt # Dono files ki lines side by side jodta hai
+tr 'a-z' 'A-Z' < file.txt # Lowercase ko uppercase mein badalta hai
+tr -d '\r' < file.txt # Windows carriage return remove karta hai
+sed -n '1,10p' file.txt # Pehli 10 lines print karta hai
+sed 's/old/new/g' file.txt # Text replace karke output dikhata hai; file unchanged
+sed -i.bak 's/old/new/g' file.txt # Backup bana kar original file edit karta hai
+awk '{print $1}' file.txt # Har line ka first whitespace-separated field print karta hai
+awk -F: '{print $1,$3}' /etc/passwd # Username aur UID print karta hai
+awk '{sum+=$1} END {print sum}' numbers.txt # First column ka total calculate karta hai
+grep -in 'error' file.txt # Case ignore karke matching lines aur number dikhata hai
+grep -RIn 'error' /var/log # Directory mein recursively text search karta hai
+grep -v '^#' config.txt # Comment se start hone wali lines exclude karta hai
+grep -E 'error|failed' file.txt # Multiple regex alternatives match karta hai
+grep -C 3 'error' file.txt # Match ke aas paas 3 lines dikhata hai
+diff -u a.txt b.txt # Files ke differences unified format mein dikhata hai
+cmp a.txt b.txt # Byte-level differences check karta hai
+comm -12 sorted-a.txt sorted-b.txt # Sorted files ki common lines dikhata hai
+tee output.txt # Output screen aur file dono mein likhta hai
+tee -a output.txt # Output file mein append karta hai
+split -l 1000 file.txt chunk- # File ko 1000-line chunks mein divide karta hai
+join a.sorted b.sorted # Sorted files ko common field par join karta hai
+fold -w 80 file.txt # Long lines ko 80 columns par wrap karta hai
+fmt -w 80 file.txt # Paragraph formatting adjust karta hai
+column -t file.txt # Whitespace-separated data table jaisa dikhata hai
+od -An -tx1 file.txt # File bytes hexadecimal mein dikhata hai
+xxd file.txt # Hex dump dikhata hai
+strings binaryfile # Binary ke printable strings nikalta hai
+jq '.name' data.json # JSON se name field nikalta hai (jq package)
+
+=== 03 SEARCH AND COMMAND DISCOVERY ===
+find . -type f -name '*.log' # Current tree mein log files search karta hai
+find /var/log -type f -mtime -7 # Last 7 din mein modified files dikhata hai
+find . -type f -size +100M # 100 MiB se badi files search karta hai
+find . -type f -empty # Empty files search karta hai
+find . -type f -perm -4000 # SUID bit wali files search karta hai
+find . -type f -name '*.txt' -exec wc -l {} + # Matching files ki line count karta hai
+find . -type f -print0 | xargs -0 -r stat # Spaces wale filenames safely process karta hai
+locate nginx.conf # Indexed database se path search karta hai
+sudo updatedb # Locate database refresh karta hai
+command -v nginx # Shell command ka resolved path batata hai
+type -a ls # Alias, builtin ya executable resolution dikhata hai
+whereis nginx # Binary, source aur manpage locations dikhata hai
+man 5 passwd # passwd file format ki manual page kholta hai
+apropos network # Manual descriptions mein keyword search karta hai
+help cd # Bash builtin ki help dikhata hai
+ls --help # Command ke supported flags dikhata hai
+compgen -c | sort -u # Bash mein available command names list karta hai
+
+=== 04 USERS GROUPS AND PERMISSIONS ===
+whoami # Current effective username dikhata hai
+id # UID, GID aur supplementary groups dikhata hai
+who # Logged-in sessions dikhata hai
+w # Logged-in users aur activity dikhata hai
+last # Login history dikhata hai
+getent passwd # Configured identity sources se user entries dikhata hai
+getent group # Group entries dikhata hai
+sudo useradd -m -s /bin/bash labuser # Home aur Bash shell ke saath user banata hai
+sudo passwd labuser # User ka password interactively set karta hai
+sudo groupadd labgroup # Naya group banata hai
+sudo usermod -aG labgroup labuser # Existing groups preserve karke group add karta hai
+sudo usermod -s /bin/bash labuser # Login shell change karta hai
+sudo passwd -l labuser # Password authentication lock karta hai; SSH keys alag hain
+sudo passwd -u labuser # Password lock remove karta hai
+sudo chage -l labuser # Password expiry policy dikhata hai
+sudo chage -M 90 labuser # Maximum password age 90 days set karta hai
+sudo gpasswd -d labuser labgroup # Supplementary group se user remove karta hai
+sudo userdel labuser # User account delete karta hai; home preserve hota hai
+sudo groupdel labgroup # Group delete karta hai
+su - labuser # Login environment ke saath user switch karta hai
+sudo -iu labuser # Authorized sudo se user login shell kholta hai
+sudo -l # Allowed sudo commands dikhata hai
+sudo visudo # Syntax validation ke saath sudoers edit karta hai
+chmod 640 file.txt # Owner rw, group r, others no access set karta hai
+chmod u+x script.sh # Owner ko execute permission deta hai
+chmod g-w file.txt # Group ki write permission remove karta hai
+chmod 750 lab # Owner rwx, group rx aur others none set karta hai
+sudo chown labuser:labgroup file.txt # Owner aur group change karta hai
+sudo chgrp labgroup file.txt # Sirf group ownership change karta hai
+umask 027 # New files/directories ki default permission mask set karta hai
+getfacl file.txt # ACL permissions dikhata hai
+setfacl -m u:labuser:r file.txt # Specific user ko read ACL deta hai
+setfacl -x u:labuser file.txt # Specific user ACL remove karta hai
+chmod g+s lab # Directory mein new files ko inherited group milta hai
+chmod +t shared-dir # Sticky bit se deletion ko owner/admin tak restrict karta hai
+lsattr file.txt # Filesystem attributes dikhata hai
+sudo chattr +i file.txt # Supported filesystem par file immutable karta hai
+sudo chattr -i file.txt # Immutable attribute remove karta hai
+
+=== 05 PROCESSES AND JOB CONTROL ===
+ps aux # System ke processes detailed format mein dikhata hai
+ps -ef # PID aur PPID ke saath processes dikhata hai
+ps -eo pid,ppid,comm,%cpu,%mem --sort=-%cpu # CPU usage ke descending order mein processes
+pstree -p # Parent-child process tree dikhata hai
+pgrep -a nginx # Nginx processes aur PID search karta hai
+pidof nginx # Running Nginx process IDs dikhata hai
+top # Live process aur CPU/memory usage dikhata hai
+htop # Interactive process monitoring karta hai
+kill -TERM 1234 # Example PID ko graceful termination signal bhejta hai
+kill -KILL 1234 # Force termination; graceful stop fail ho tab use karo
+pkill -TERM -x nginx # Exact process name ko TERM bhejta hai; service stop preferred
+sleep 300 & # Background job start karta hai
+jobs -l # Current shell ke jobs aur PID dikhata hai
+fg %1 # Job 1 ko foreground mein lata hai
+bg %1 # Suspended job ko background mein resume karta hai
+nohup ./script.sh > script.log 2>&1 & # Terminal disconnect ke baad bhi script chalane mein help karta hai
+disown %1 # Job ko shell job table se remove karta hai
+nice -n 10 ./script.sh # Lower CPU scheduling priority ke saath run karta hai
+renice 10 -p 1234 # Existing process ki nice value change karta hai
+ionice -c 3 -p 1234 # Process ko idle I/O scheduling class deta hai
+ulimit -a # Current shell resource limits dikhata hai
+cat /proc/1234/status # Process state, memory aur IDs dikhata hai
+ls -l /proc/1234/fd # Process ke open file descriptors dikhata hai
+sudo lsof -p 1234 # Process ki open files aur sockets dikhata hai
+sudo lsof +L1 # Deleted lekin open files identify karta hai
+sudo strace -f -p 1234 # Process system calls trace karta hai; overhead ho sakta hai
+
+=== 06 SYSTEM INFORMATION AND PERFORMANCE ===
+uname -a # Kernel aur architecture information dikhata hai
+cat /etc/os-release # Linux distribution aur version dikhata hai
+hostnamectl # Hostname, OS aur machine details dikhata hai
+uptime # Uptime aur load averages dikhata hai
+lscpu # CPU topology aur cores dikhata hai
+free -h # RAM aur swap usage dikhata hai
+cat /proc/meminfo # Detailed memory statistics dikhata hai
+vmstat 1 5 # CPU, memory, swap aur I/O samples dikhata hai
+mpstat -P ALL 1 5 # Har CPU ki utilization dikhata hai (sysstat)
+iostat -xz 1 5 # Disk latency aur utilization dikhata hai (sysstat)
+pidstat -urd 1 5 # Per-process CPU, memory aur I/O stats dikhata hai
+sar -u 1 5 # CPU utilization samples dikhata hai
+sar -r # Available historical memory stats dikhata hai
+top -b -n 1 # Non-interactive process snapshot leta hai
+sudo iotop # Per-process disk I/O monitor karta hai
+sudo dmesg -T | tail -50 # Recent kernel messages dikhata hai
+cat /proc/pressure/memory # Memory contention pressure dikhata hai
+cat /proc/pressure/cpu # CPU contention pressure dikhata hai
+cat /proc/pressure/io # I/O contention pressure dikhata hai
+systemd-cgtop # Control groups ka resource usage dikhata hai
+lspci # PCI devices dikhata hai
+lsusb # USB devices dikhata hai
+sudo dmidecode -t memory # Hardware memory modules ki details dikhata hai
+
+=== 07 DISK STORAGE FILESYSTEM AND LVM ===
+df -hT # Mounted filesystems ka size, type aur usage dikhata hai
+df -i # Inode utilization dikhata hai
+du -sh /var/log # Directory ka total disk usage dikhata hai
+du -xhd1 /var | sort -h # Same filesystem par directory usage sort karta hai
+lsblk -f # Block devices, filesystem aur UUID dikhata hai
+sudo blkid # Block device identifiers dikhata hai
+findmnt # Mounted filesystems ki tree dikhata hai
+findmnt -T /var/log # Given path ka backing mount dikhata hai
+sudo fdisk -l # Disk partition tables read karta hai
+sudo parted -l # Disk partition layout dikhata hai
+sudo mount /dev/sdb1 /mnt/data # Verified existing filesystem mount karta hai
+sudo umount /mnt/data # Filesystem unmount karta hai
+sudo mount -a # fstab entries mount karta hai; pehle configuration verify karo
+sudo findmnt --verify # fstab configuration verify karta hai
+sudo mkfs.ext4 /dev/sdb1 # DESTRUCTIVE: verified empty partition format karta hai
+sudo mkfs.xfs /dev/sdb1 # DESTRUCTIVE: alternative XFS format; dono mkfs mat chalana
+sudo fsck -n /dev/sdb1 # Unmounted filesystem ka read-only check; filesystem-specific rules dekho
+sudo tune2fs -l /dev/sdb1 # ext filesystem metadata dikhata hai
+sudo xfs_info /mnt/data # Mounted XFS filesystem properties dikhata hai
+sudo pvs # LVM physical volumes dikhata hai
+sudo vgs # LVM volume groups dikhata hai
+sudo lvs -a -o +devices # Logical volumes aur underlying devices dikhata hai
+sudo pvcreate /dev/sdb # DESTRUCTIVE: verified unused disk initialize karta hai
+sudo vgcreate labvg /dev/sdb # Physical volume se volume group banata hai
+sudo lvcreate -L 2G -n lablv labvg # Volume group se 2 GiB logical volume banata hai
+sudo mkfs.ext4 /dev/labvg/lablv # DESTRUCTIVE: naye logical volume ka filesystem banata hai
+sudo lvextend -r -L +1G /dev/labvg/lablv # LV aur supported filesystem grow karta hai
+sudo vgextend labvg /dev/sdc # Initialized unused PV ko VG mein add karta hai
+sudo lvremove /dev/labvg/lablv # DESTRUCTIVE: unmounted LV aur data remove karta hai
+sudo vgremove labvg # Empty volume group remove karta hai
+sudo pvremove /dev/sdb # Unused PV metadata remove karta hai
+swapon --show # Active swap devices dikhata hai
+sudo smartctl -a /dev/sdb # Supported disk ka SMART health data dikhata hai
+sudo fstrim -av # Supported mounted filesystems par unused SSD blocks discard karta hai
+
+=== 08 NETWORKING DNS AND HTTP ===
+ip -br addr # Interfaces aur IP addresses short format mein dikhata hai
+ip link show # Network interfaces aur link states dikhata hai
+ip route show # Routing table dikhata hai
+ip route get 8.8.8.8 # Destination ke liye selected route dikhata hai
+ip neigh show # ARP/NDP neighbor cache dikhata hai
+ip -s link # Interface packet counts aur errors dikhata hai
+hostname -I # Host ke configured IP addresses dikhata hai
+ss -tulnp # TCP/UDP listening ports aur available process info dikhata hai
+ss -tan state established # Established TCP connections dikhata hai
+ss -s # Socket summary dikhata hai
+sudo lsof -iTCP:80 -sTCP:LISTEN # Port 80 par listening process dikhata hai
+ping -c 4 8.8.8.8 # ICMP connectivity test karta hai
+traceroute example.com # Network path ke hops dikhata hai
+tracepath example.com # Route aur path MTU investigate karta hai
+mtr -rw -c 10 example.com # Hop-wise latency aur loss report dikhata hai
+getent hosts example.com # System resolver se hostname resolve karta hai
+dig example.com A # DNS IPv4 records query karta hai
+dig example.com AAAA # DNS IPv6 records query karta hai
+dig example.com MX # Mail exchange records query karta hai
+dig @1.1.1.1 example.com # Specific DNS resolver se query karta hai
+dig -x 8.8.8.8 # Reverse DNS lookup karta hai
+nslookup example.com # DNS lookup karta hai
+resolvectl status # systemd-resolved DNS settings dikhata hai
+resolvectl query example.com # Local resolver se DNS query karta hai
+cat /etc/resolv.conf # Resolver configuration dikhata hai
+curl -I https://example.com # HTTP response headers fetch karta hai
+curl -v https://example.com # DNS, connection, TLS aur HTTP details dikhata hai
+curl -fsS http://localhost:80 # Local endpoint check karta hai; HTTP errors par failure
+curl -L -o page.html https://example.com # Redirect follow karke response save karta hai
+curl --connect-timeout 5 --max-time 15 https://example.com # Connection aur total timeout set karta hai
+wget -O page.html https://example.com # Remote content file mein download karta hai
+nc -vz localhost 80 # TCP port connectivity test karta hai
+sudo tcpdump -ni any -c 20 port 80 # Authorized HTTP traffic ke 20 packets capture karta hai
+sudo tcpdump -ni any -w capture.pcap -c 100 # Packet capture file mein save karta hai; sensitive data ho sakta hai
+ethtool eth0 # Example interface ki speed aur link details dikhata hai
+nmcli device status # NetworkManager device state dikhata hai
+nmcli connection show # NetworkManager connection profiles dikhata hai
+sudo netplan try # Ubuntu netplan changes temporary test karta hai
+
+=== 09 SYSTEMD SERVICES LOGS AND BOOT ===
+systemctl status nginx # Nginx service status aur recent logs dikhata hai
+sudo systemctl start nginx # Nginx service start karta hai
+sudo systemctl stop nginx # Nginx service stop karta hai
+sudo systemctl restart nginx # Nginx service restart karta hai
+sudo systemctl reload nginx # Supported service config bina full restart reload karta hai
+sudo systemctl enable nginx # Boot-time startup enable karta hai
+sudo systemctl disable nginx # Boot-time startup disable karta hai
+sudo systemctl enable --now nginx # Enable aur start dono karta hai
+systemctl is-active nginx # Service active hai ya nahi check karta hai
+systemctl is-enabled nginx # Boot enablement check karta hai
+systemctl list-units --type=service --all # Loaded service units dikhata hai
+systemctl list-unit-files --type=service # Installed service unit files dikhata hai
+systemctl --failed # Failed units dikhata hai
+systemctl cat nginx # Unit file aur drop-ins dikhata hai
+systemctl show nginx # Service ki detailed properties dikhata hai
+sudo systemctl edit nginx # Service ke liye override edit karta hai
+sudo systemctl daemon-reload # Systemd unit file changes reload karta hai
+sudo systemctl reset-failed nginx # Failed state aur restart counter reset karta hai
+systemd-analyze # Boot timing dikhata hai
+systemd-analyze blame # Units ka initialization time dikhata hai
+systemd-analyze critical-chain # Boot dependency critical chain dikhata hai
+journalctl -u nginx -n 100 # Nginx ki last 100 journal entries dikhata hai
+journalctl -u nginx -f # Nginx ke live logs follow karta hai
+journalctl -b # Current boot ke logs dikhata hai
+journalctl -b -1 # Previous boot ke available logs dikhata hai
+journalctl -p err -b # Current boot ki error aur higher priority entries dikhata hai
+journalctl --since '1 hour ago' # Last hour ke logs dikhata hai
+journalctl -k # Kernel journal entries dikhata hai
+journalctl --disk-usage # Journal ka disk consumption dikhata hai
+sudo journalctl --vacuum-time=7d # Archived journal logs ki retention reduce karta hai
+logger 'Linux lab test' # System log mein test message likhta hai
+sudo nginx -t # Nginx configuration syntax test karta hai
+sudo nginx -T # Complete Nginx config dump karta hai; sensitive values check karo
+sudo reboot # WARNING: machine restart karta hai
+sudo shutdown -h +10 # WARNING: 10 minute mein shutdown schedule karta hai
+sudo shutdown -c # Scheduled shutdown cancel karta hai
+
+=== 10 PACKAGE MANAGEMENT ===
+sudo apt update # Debian/Ubuntu repository metadata refresh karta hai
+apt list --upgradable # Available package upgrades dikhata hai
+sudo apt install nginx # Nginx package install karta hai
+sudo apt upgrade # Installed packages upgrade karta hai; maintenance window use karo
+apt search nginx # Repository mein package search karta hai
+apt show nginx # Package metadata dikhata hai
+apt-cache policy nginx # Installed aur candidate versions dikhata hai
+dpkg -l # Installed Debian packages dikhata hai
+dpkg -L nginx # Package ki installed files dikhata hai
+dpkg -S /bin/ls # Path ka owning package identify karta hai
+sudo apt install ./package.deb # Local deb package dependencies ke saath install karta hai
+sudo apt remove nginx # Package remove karta hai; config retain ho sakti hai
+sudo apt purge nginx # Package aur managed config remove karta hai
+sudo apt autoremove --dry-run # Unused dependencies removal preview karta hai
+sudo apt clean # Downloaded package cache remove karta hai
+sudo dnf makecache # RHEL/Fedora repo metadata cache banata hai
+sudo dnf install nginx # RPM-based distro par Nginx install karta hai
+sudo dnf upgrade # RPM packages upgrade karta hai
+sudo dnf remove nginx # Nginx aur applicable dependencies remove karta hai
+dnf search nginx # Package search karta hai
+dnf info nginx # Package details dikhata hai
+dnf history # Package transactions history dikhata hai
+rpm -qa # Installed RPM packages dikhata hai
+rpm -ql nginx # RPM package files dikhata hai
+rpm -qf /usr/bin/ls # File ka owning RPM package dikhata hai
+rpm -V nginx # Installed package files verify karta hai
+
+=== 11 SSH REMOTE ACCESS AND FILE TRANSFER ===
+ssh user@server # Remote server par encrypted shell kholta hai
+ssh -p 2222 user@server # Custom SSH port use karta hai
+ssh -i ~/.ssh/id_ed25519 user@server # Specific private key se authenticate karta hai
+ssh-keygen -t ed25519 -C 'lab' # SSH key pair generate karta hai; existing key overwrite mat karo
+ssh-copy-id user@server # Public key remote authorized_keys mein add karta hai
+ssh -v user@server # SSH connection debugging details dikhata hai
+eval "$(ssh-agent -s)" # Current shell ke liye SSH agent start karta hai
+ssh-add ~/.ssh/id_ed25519 # Private key agent mein load karta hai
+ssh -J user@bastion user@server # Bastion host ke through SSH connect karta hai
+ssh -N -L 8080:localhost:80 user@server # Remote HTTP port local 8080 par tunnel karta hai
+scp file.txt user@server:/tmp/ # Local file remote server par copy karta hai
+scp user@server:/tmp/file.txt . # Remote file current directory mein copy karta hai
+sftp user@server # Interactive encrypted file transfer session kholta hai
+rsync -avh --dry-run lab/ user@server:/tmp/lab/ # Sync changes preview karta hai
+rsync -avh lab/ user@server:/tmp/lab/ # Incremental directory transfer karta hai
+sudo sshd -t # SSH daemon configuration syntax validate karta hai
+
+=== 12 ARCHIVES BACKUP AND CHECKSUM ===
+tar -czf lab.tar.gz lab/ # Directory ka gzip compressed archive banata hai
+tar -tzf lab.tar.gz # Archive contents bina extract kiye dikhata hai
+tar -xzf lab.tar.gz -C /tmp # Trusted archive ko target directory mein extract karta hai
+tar -cJf lab.tar.xz lab/ # XZ compressed archive banata hai
+gzip -k file.txt # Original retain karke gzip compress karta hai
+gunzip -k file.txt.gz # Original archive retain karke decompress karta hai
+zip -r lab.zip lab/ # Directory ka ZIP archive banata hai
+unzip -l lab.zip # ZIP contents list karta hai
+unzip lab.zip -d /tmp/lab-extract # Trusted ZIP extract karta hai
+sha256sum lab.tar.gz > lab.sha256 # Archive ki SHA256 checksum save karta hai
+sha256sum -c lab.sha256 # Saved checksum ke against archive verify karta hai
+md5sum file.txt # Legacy checksum calculate karta hai; security ke liye suitable nahi
+rsync -aHAX --dry-run lab/ backup/ # Metadata preserve karne wale backup ka preview
+rsync -aHAX lab/ backup/ # Supported permissions ke saath metadata-preserving backup
+
+=== 13 FIREWALL SECURITY AND TLS ===
+sudo ufw status verbose # Ubuntu firewall rules aur defaults dikhata hai
+sudo ufw allow 22/tcp # SSH traffic allow karta hai; actual SSH port verify karo
+sudo ufw allow 80/tcp # HTTP TCP port allow karta hai
+sudo ufw enable # Firewall enable karta hai; remote access pehle verify karo
+sudo ufw status numbered # Rules ke numbers dikhata hai
+sudo ufw delete allow 80/tcp # HTTP allow rule remove karta hai
+sudo firewall-cmd --state # firewalld status dikhata hai
+sudo firewall-cmd --get-active-zones # Active network zones dikhata hai
+sudo firewall-cmd --list-all # Default zone ki firewall configuration dikhata hai
+sudo firewall-cmd --add-service=http --permanent # Default zone mein permanent HTTP allow karta hai
+sudo firewall-cmd --reload # Permanent firewall configuration reload karta hai
+sudo nft list ruleset # nftables firewall rules dikhata hai
+sudo iptables -S # Legacy/compatibility filter rules dikhata hai
+getenforce # SELinux enforcement mode dikhata hai
+sestatus # SELinux detailed status dikhata hai
+ls -Z /var/www # SELinux file contexts dikhata hai
+sudo restorecon -Rv /var/www # Policy ke according SELinux labels restore karta hai
+sudo ausearch -m AVC -ts recent # Recent SELinux access denials search karta hai
+sudo aa-status # AppArmor profiles status dikhata hai
+openssl version # OpenSSL version dikhata hai
+openssl rand -hex 32 # Cryptographically random value generate karta hai; secret safely store karo
+openssl x509 -in cert.pem -noout -dates -subject -issuer # Certificate expiry aur identity dikhata hai
+openssl s_client -connect example.com:443 -servername example.com </dev/null # TLS handshake aur certificate inspect karta hai
+sudo auditctl -l # Existing audit rules dikhata hai
+sudo ausearch -m USER_LOGIN -ts today # Aaj ke available audited login events dikhata hai
+
+=== 14 SHELL BASH AND ENVIRONMENT ===
+echo "$PATH" # Executable search path dikhata hai
+printenv HOME # Home environment variable dikhata hai
+env # Environment variables dikhata hai; secrets share mat karo
+export APP_ENV=dev # Child processes ke liye environment variable export karta hai
+unset APP_ENV # Variable remove karta hai
+alias ll='ls -lah' # Shortcut alias banata hai
+unalias ll # Alias remove karta hai
+history # Shell command history dikhata hai
+source ~/.bashrc # Bash configuration current shell mein execute karta hai
+bash -n script.sh # Script syntax validate karta hai
+bash -x script.sh # Script execution trace karta hai; secrets expose ho sakte hain
+bash script.sh # Bash script execute karta hai
+chmod +x script.sh # Script executable banata hai
+./script.sh # Shebang ke according executable script run karta hai
+printf '%s\n' "$HOME" # Formatted output print karta hai
+read -r name # User input variable mein store karta hai
+printf '%s\n' hello > output.txt # File overwrite karke output likhta hai
+printf '%s\n' hello >> output.txt # File mein output append karta hai
+ls missing 2> error.log # Standard error file mein redirect karta hai
+./script.sh > run.log 2>&1 # Standard output aur error same file mein save karta hai
+ls | wc -l # First command ka output second command ko deta hai
+mkdir -p lab && cd lab # First successful ho tab second command run karta hai
+false || echo failed # First fail ho tab second command run karta hai
+echo $? # Previous command ka exit status dikhata hai
+for f in *.txt; do [ -f "$f" ] && wc -l "$f"; done # Text files par loop chalata hai
+if [ -f file.txt ]; then echo exists; fi # File existence condition check karta hai
+set -o pipefail # Pipeline mein failure detect karne mein help karta hai
+trap 'echo interrupted' INT # Interrupt signal ke liye handler set karta hai
+
+=== 15 SCHEDULING TIME AND CRON ===
+date # Current date aur time dikhata hai
+date -u # UTC time dikhata hai
+timedatectl # Timezone aur synchronization status dikhata hai
+timedatectl list-timezones # Available timezones dikhata hai
+sudo timedatectl set-timezone Asia/Kolkata # System timezone IST set karta hai
+chronyc tracking # Chrony time synchronization status dikhata hai
+chronyc sources -v # NTP time sources dikhata hai
+crontab -l # Current user ke scheduled cron jobs dikhata hai
+crontab -e # Current user ka cron schedule edit karta hai
+sudo crontab -u labuser -l # Specific user ka cron schedule dikhata hai
+# Crontab entry: 0 2 * * * /home/labuser/backup.sh # Daily 2 AM par script run karega
+systemctl list-timers --all # Systemd timers aur next run dikhata hai
+atq # Pending one-time at jobs dikhata hai
+printf '%s\n' 'date >> /tmp/lab-date.log' | at now + 5 minutes # 5 minute baad one-time task schedule karta hai
+atrm 1 # Example at job ID cancel karta hai
+
+=== 16 ADVANCED KERNEL AND TROUBLESHOOTING ===
+lsmod # Loaded kernel modules dikhata hai
+modinfo overlay # Kernel module metadata dikhata hai
+sudo modprobe overlay # Supported overlay module load karta hai
+sysctl kernel.pid_max # Kernel ka maximum PID setting dikhata hai
+sysctl net.ipv4.ip_forward # IPv4 forwarding setting check karta hai
+sysctl vm.swappiness # Swap preference setting dikhata hai
+sysctl fs.file-max # System-wide open file limit dikhata hai
+cat /proc/sys/fs/file-nr # Allocated file handles ki information dikhata hai
+lsns # Linux namespaces dikhata hai
+sudo nsenter -t 1234 -n ip addr # Authorized process ke network namespace mein IP check karta hai
+unshare --user --map-root-user id # Supported host par isolated user namespace example
+coredumpctl list # Available process crash dumps dikhata hai
+coredumpctl info 1234 # Example crash PID ki metadata dikhata hai
+sudo perf stat -p 1234 sleep 5 # Supported system par process performance counters sample karta hai
+sudo journalctl -k -b | grep -Ei 'oom|out of memory|killed process' # Kernel OOM evidence search karta hai
+sudo journalctl -u nginx --since '30 minutes ago' # Recent service failure investigate karta hai
+namei -l /usr/share/nginx/html/index.html # Path ke har component ki permissions dikhata hai
+curl -I http://127.0.0.1 # Local web server response check karta hai
+sudo ss -ltnp # Listening TCP ports aur processes verify karta hai
+sudo logrotate -d /etc/logrotate.conf # Log rotation configuration ka non-mutating debug karta hai
+
+=== 17 EDITORS AND TERMINAL ===
+vim file.txt # Vim editor mein file kholta hai
+nano file.txt # Nano editor mein file kholta hai
+# Vim: i # Insert mode mein text edit karta hai
+# Vim: Esc :wq # Changes save karke editor exit karta hai
+# Vim: Esc :q! # Unsaved changes discard karke exit karta hai
+# Vim: Esc /error # Text search karta hai
+# Vim: Esc :set number # Line numbers enable karta hai
+clear # Terminal screen clear karta hai
+reset # Corrupted terminal settings reset karta hai
+stty -a # Terminal settings dikhata hai
+tty # Current terminal device path dikhata hai
+screen -S lab # Persistent terminal session start karta hai
+screen -ls # Screen sessions list karta hai
+tmux new -s lab # Named tmux session start karta hai
+tmux ls # Existing tmux sessions dikhata hai
+tmux attach -t lab # Existing tmux session attach karta hai
+script terminal.log # Terminal session output record karta hai; secrets record mat karo
+exit # Current shell ya recording session exit karta hai
+
+=== 18 ADDITIONAL STORAGE AND NETWORK ADMIN ===
+lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS # Disk aur partitions ka detailed layout dikhata hai
+sudo fdisk /dev/sdb # Partition editor kholta hai; verified lab disk hi use karo
+sudo partprobe /dev/sdb # Kernel ko changed partition table reread karne ko kehta hai
+sudo resize2fs /dev/labvg/lablv # Supported ext filesystem ko device size tak grow karta hai
+sudo xfs_growfs /mnt/data # Mounted XFS filesystem grow karta hai
+sudo xfs_repair -n /dev/sdb1 # Unmounted XFS ka no-modify diagnostic check karta hai
+sudo blockdev --getsize64 /dev/sdb # Block device size bytes mein dikhata hai
+sudo wipefs -n /dev/sdb # Existing filesystem signatures bina erase kiye dikhata hai
+sudo mdadm --detail /dev/md0 # Linux software RAID array details dikhata hai
+cat /proc/mdstat # RAID array status aur resync progress dikhata hai
+showmount -e server # Remote NFS server ke exported paths dikhata hai
+timeout 10 nc -vz server 2049 # NFS port connectivity bounded time mein test karta hai
+sudo mount -t nfs server:/export /mnt/nfs # Authorized NFS export mount karta hai
+sudo exportfs -v # Local NFS exports aur options dikhata hai
+sudo exportfs -ra # Configured NFS exports reload karta hai
+sudo ip link set eth0 up # Verified interface enable karta hai
+sudo ip addr add 192.0.2.10/24 dev eth0 # Example TEST-NET address add karta hai; lab only
+sudo ip addr del 192.0.2.10/24 dev eth0 # Example address remove karta hai
+ip rule show # Policy routing rules dikhata hai
+ip -6 route # IPv6 routing table dikhata hai
+bridge link # Linux bridge ports dikhata hai
+bridge vlan show # Bridge VLAN membership dikhata hai
+sudo conntrack -S # Connection tracking statistics dikhata hai
+sudo nmap -sT -p 80,443 localhost # Apne authorized local host ke selected ports test karta hai
+
+=== 19 PRODUCTION TROUBLESHOOTING CHECKLIST ===
+# CPU high: uptime, top, pidstat, mpstat se CPU saturation aur process identify karo.
+# RAM high: free -h, vmstat, OOM logs aur process RSS check karo; cache ko automatically problem mat samjho.
+# Disk full: df -hT, df -i, du -xhd1, lsof +L1 se blocks, inodes aur deleted-open files check karo.
+# Website down: systemctl status nginx, nginx -t, journalctl, ss, curl aur firewall inspect karo.
+# DNS failure: getent hosts, resolvectl status, dig aur routing table compare karo.
+# SSH failure: ssh -v, sshd -t, service logs, port aur permissions check karo.
+# Permission denied: id, stat, namei -l, getfacl aur SELinux/AppArmor logs check karo.
+# Boot slow: systemd-analyze critical-chain aur journalctl -b se dependency aur errors check karo.
+# Disk latency: iostat -xz, pidstat -d aur kernel logs compare karo.
+# Changes karne se pehle evidence collect karo; production data delete ya service restart blindly mat karo.
+
