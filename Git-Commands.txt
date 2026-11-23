@@ -1,0 +1,326 @@
+GIT COMMANDS - BASIC TO ADVANCED | HINGLISH PRACTICAL REFERENCE
+================================================================
+Examples Bash/Linux ke liye hain. Commands sequential script nahi hain; zarurat ke hisaab se run karo.
+main, feature/nginx, origin, file.txt aur commit IDs examples hain. Actual values replace karo.
+DESTRUCTIVE commands run karne se pehle git status aur backup branch check karo.
+
+01. INSTALLATION AND HELP
+sudo apt update # Ubuntu package index refresh karta hai
+sudo apt install git # Ubuntu/Debian par Git install karta hai
+sudo dnf install git # RHEL/Fedora par Git install karta hai
+sudo yum install git # Older RHEL family par Git install karta hai
+git --version # Installed Git version dikhata hai
+command -v git # Git executable ka path dikhata hai
+git help -a # Available Git commands ki list dikhata hai
+git help -g # Git concept guides dikhata hai
+git help commit # Commit ka detailed manual kholta hai
+git commit -h # Commit ke short options dikhata hai
+git --exec-path # Git helper executables ka path dikhata hai
+
+02. CONFIGURATION
+git config --global user.name 'Your Name' # Commit author ka default naam set karta hai
+git config --global user.email 'you@example.com' # Commit author ka default email set karta hai
+git config --local user.email 'work@example.com' # Sirf current repository ka email set karta hai
+git config --global init.defaultBranch main # Nayi repository ki default branch main rakhta hai
+git config --list --show-origin # Configuration aur uski source file dikhata hai
+git config --get user.email # Effective email value dikhata hai
+git config --global --edit # Global config editor mein kholta hai
+git config --local --edit # Repository config editor mein kholta hai
+git config --global core.editor vim # Default Git editor Vim set karta hai
+git config --global core.autocrlf input # Commit par CRLF ko LF mein normalize karta hai
+git config --global pull.rebase true # Pull ke waqt local commits rebase karne ka default set karta hai
+git config --global fetch.prune true # Fetch ke waqt stale remote-tracking refs remove karta hai
+git config --global alias.st status # git st shortcut banata hai
+git config --global alias.lg 'log --oneline --graph --all' # Compact history ka shortcut banata hai
+git config --global --unset alias.st # Configured alias remove karta hai
+
+03. INIT AND CLONE
+mkdir nginx-project # Project directory banata hai
+cd nginx-project # Project directory mein enter karta hai
+git init -b main # Main branch ke saath local repository initialize karta hai
+git init --bare nginx.git # Working tree ke bina server-style repository banata hai
+git clone https://github.com/OWNER/REPO.git # Remote repository local machine par clone karta hai
+git clone git@github.com:OWNER/REPO.git # SSH authentication se repository clone karta hai
+git clone --branch main --single-branch URL # Sirf selected branch ki history fetch karta hai
+git clone --depth 1 URL # Latest commit tak shallow clone banata hai
+git clone --filter=blob:none URL # File blobs on demand fetch karne wala partial clone banata hai
+git clone --recurse-submodules URL # Repository aur submodules initialize karta hai
+git rev-parse --show-toplevel # Repository root directory dikhata hai
+git rev-parse --is-inside-work-tree # Check karta hai ki current location working tree mein hai
+
+04. STATUS, STAGING AND COMMIT
+git status # Working tree aur staging area ki status dikhata hai
+git status -sb # Short status aur branch tracking dikhata hai
+git status --ignored # Ignored files bhi dikhata hai
+git add file.txt # Selected file ke changes stage karta hai
+git add . # Current directory ke changes stage karta hai
+git add -A # Puri repository ke additions, modifications aur deletions stage karta hai
+git add -u # Sirf tracked files ke modifications aur deletions stage karta hai
+git add -p # Changes ko hunk-wise select karke stage karta hai
+git add -N file.txt # File ko intent-to-add mark karta hai bina content stage kiye
+git restore --staged file.txt # File ko unstage karta hai, working changes preserve rehte hain
+git commit -m 'Add nginx configuration' # Staged changes ka commit banata hai
+git commit -am 'Update tracked files' # Tracked changes stage aur commit karta hai, untracked nahi
+git commit --amend --no-edit # Last commit replace karta hai; published history par caution
+git commit --amend -m 'Correct message' # Last commit message aur staged content update karta hai
+git commit --allow-empty -m 'Trigger CI' # Bina content change ke commit banata hai
+git commit -s -m 'Update config' # Signed-off-by trailer add karta hai, cryptographic signature nahi
+git commit -S -m 'Signed commit' # Configured signing key se commit sign karta hai
+git mv old.txt new.txt # File rename karke change stage karta hai
+git rm file.txt # Tracked file delete aur deletion stage karta hai
+git rm --cached file.txt # Index se file remove karta hai, disk par preserve karta hai
+
+05. LOG AND DIFF
+git log # Commit history dikhata hai
+git log --oneline # Har commit ko ek short line mein dikhata hai
+git log --graph --oneline --all --decorate # Branch aur merge history graph dikhata hai
+git log -5 # Latest paanch commits dikhata hai
+git log --stat # Commits ke file change statistics dikhata hai
+git log -p # Har commit ka patch dikhata hai
+git log --author='Name' # Selected author ke commits filter karta hai
+git log --since='2 weeks ago' # Recent do hafton ki history dikhata hai
+git log --grep='nginx' # Commit message mein nginx search karta hai
+git log --follow -- file.txt # Renames follow karke file history dikhata hai
+git log -S 'listen 80' # String occurrence count badalne wale commits khojta hai
+git log -G 'listen.*80' # Patch lines mein regex matching changes khojta hai
+git log main..feature/nginx # Feature branch ke commits dikhata hai jo main mein nahi hain
+git show HEAD # Latest commit ka metadata aur diff dikhata hai
+git show HEAD:file.txt # Latest committed file content dikhata hai
+git diff # Unstaged changes dikhata hai
+git diff --staged # Staged changes dikhata hai
+git diff HEAD # Tracked staged aur unstaged changes dikhata hai
+git diff --stat # Changes ka short summary dikhata hai
+git diff --name-only # Changed file names dikhata hai
+git diff --check # Whitespace errors identify karta hai
+git diff main...feature/nginx # Merge base se feature branch tak ka diff dikhata hai
+git blame file.txt # Har current line ka last modifying commit dikhata hai
+git shortlog -sn --all # Author-wise commit counts dikhata hai
+
+06. BRANCHES
+git branch # Local branches dikhata hai
+git branch -a # Local aur remote-tracking branches dikhata hai
+git branch -vv # Branch upstream aur latest commit dikhata hai
+git branch feature/nginx # Nayi branch banata hai bina switch kiye
+git switch feature/nginx # Existing branch par switch karta hai
+git switch -c feature/new # Nayi branch bana kar switch karta hai
+git checkout -b feature/legacy # Legacy syntax se branch create aur checkout karta hai
+git switch - # Previous branch par switch karta hai
+git switch --detach HEAD~1 # Purane commit ko detached HEAD mode mein checkout karta hai
+git branch -m old-name new-name # Local branch rename karta hai
+git branch --merged main # Main mein merged branches dikhata hai
+git branch --no-merged main # Main mein unmerged branches dikhata hai
+git branch -d feature/nginx # Safely local merged branch delete karta hai
+git branch -D feature/nginx # WARNING: Unmerged branch bhi force delete karta hai
+git branch --contains HEAD # Selected commit contain karne wali branches dikhata hai
+git branch --set-upstream-to=origin/main main # Main branch ki tracking configure karta hai
+
+07. REMOTES, FETCH, PULL AND PUSH
+git remote -v # Remote URLs dikhata hai
+git remote add origin URL # Origin naam ka remote add karta hai
+git remote set-url origin URL # Existing remote URL update karta hai
+git remote rename origin upstream # Remote ka naam change karta hai
+git remote remove upstream # Local remote configuration remove karta hai
+git remote show origin # Remote tracking aur branch details dikhata hai
+git ls-remote --heads origin # Remote branches aur commit IDs list karta hai
+git fetch origin # Remote refs fetch karta hai bina working branch merge kiye
+git fetch --all --prune # Sab remotes fetch aur stale tracking refs prune karta hai
+git fetch --tags # Remote tags fetch karta hai
+git fetch --unshallow # Shallow repository ki available full history fetch karta hai
+git pull --ff-only origin main # Sirf fast-forward possible ho toh current branch update karta hai
+git pull --rebase origin main # Fetch karke current branch ke local commits rebase karta hai
+git pull --no-rebase origin main # Fetch karke merge strategy se integrate karta hai
+git push -u origin main # Main push karta hai aur upstream set karta hai
+git push # Configured upstream par default push karta hai
+git push origin feature/nginx # Selected local branch remote par push karta hai
+git push origin --delete feature/nginx # Remote branch delete karta hai
+git push --dry-run origin main # Actual update ke bina push ka preview deta hai
+git push --force-with-lease origin feature/nginx # WARNING: Expected remote state match ho toh history rewrite karta hai
+git push --atomic origin main v1.0 # Server support ho toh refs ko all-or-nothing update karta hai
+
+08. MERGE AND CONFLICTS
+git switch main # Target branch main select karta hai
+git merge feature/nginx # Feature history current branch mein integrate karta hai
+git merge --no-ff feature/nginx # Fast-forward possible hone par bhi merge commit banata hai
+git merge --ff-only feature/nginx # Diverged history hone par merge reject karta hai
+git merge --squash feature/nginx # Combined changes stage karta hai, merge commit nahi banata
+git merge --no-commit --no-ff feature/nginx # Merge commit se pehle review ka mauka deta hai
+git diff --name-only --diff-filter=U # Unresolved conflict files list karta hai
+git ls-files -u # Conflicted index entries aur stages dikhata hai
+git checkout --ours file.txt # Merge conflict mein current side ka version working tree mein rakhta hai
+git checkout --theirs file.txt # Merge conflict mein incoming side ka version rakhta hai
+git add file.txt # Manually resolved file stage karta hai
+git merge --continue # Resolved merge complete karta hai
+git merge --abort # In-progress merge cancel karne ki koshish karta hai
+git mergetool # Configured merge tool se conflicts resolve karta hai
+
+09. REBASE AND CHERRY-PICK
+git rebase main # Current branch ke commits main ke upar replay karta hai
+git rebase -i HEAD~3 # Last teen commits edit, squash ya reorder karne deta hai
+git rebase --onto main old-base feature/nginx # Selected commit range ko nayi base par replay karta hai
+git rebase --continue # Conflict resolve aur stage karne ke baad rebase continue karta hai
+git rebase --skip # Current replayed commit skip karta hai; changes omit ho sakte hain
+git rebase --abort # Rebase cancel karke original branch state restore karta hai
+git rebase --autostash main # Temporary stash ke saath rebase karta hai; apply conflict possible hai
+git cherry-pick COMMIT_ID # Selected commit ka change current branch par apply karta hai
+git cherry-pick -x COMMIT_ID # Original commit ID message mein record karta hai
+git cherry-pick --no-commit COMMIT_ID # Change stage karta hai bina commit banaye
+git cherry-pick --continue # Conflict resolution ke baad cherry-pick continue karta hai
+git cherry-pick --abort # In-progress cherry-pick cancel karta hai
+
+10. STASH
+git stash push -m 'WIP nginx' # Tracked working aur staged changes temporarily save karta hai
+git stash push -u -m 'Include new files' # Untracked files bhi stash karta hai
+git stash push -- file.txt # Selected path ke changes stash karta hai
+git stash list # Saved stashes list karta hai
+git stash show -p 'stash@{0}' # Latest stash ka patch dikhata hai
+git stash apply 'stash@{0}' # Stash apply karta hai aur entry preserve karta hai
+git stash pop # Latest stash apply karta hai aur success par entry remove karta hai
+git stash apply --index # Staged state bhi restore karne ki koshish karta hai
+git stash branch recover-wip 'stash@{0}' # Original base par branch bana kar stash apply karta hai
+git stash drop 'stash@{0}' # WARNING: Selected stash delete karta hai
+git stash clear # WARNING: Sab stash entries delete karta hai
+
+11. RESET, RESTORE, REVERT AND RECOVERY
+git restore file.txt # WARNING: Unstaged tracked changes discard karta hai
+git restore --source=HEAD~1 -- file.txt # Purane commit ka file content working tree mein laata hai
+git restore --staged --worktree --source=HEAD file.txt # WARNING: Staged aur unstaged file edits discard karta hai
+git reset --soft HEAD~1 # Branch tip peeche karta hai, index aur working tree preserve karta hai
+git reset --mixed HEAD~1 # Branch tip aur index reset karta hai, working files preserve karta hai
+git reset --hard HEAD~1 # WARNING: Branch, index aur tracked working changes reset karta hai
+git revert COMMIT_ID # Existing commit ko undo karne wala naya commit banata hai
+git revert --no-commit COMMIT_ID # Reverse change apply karta hai bina commit banaye
+git revert -m 1 MERGE_COMMIT_ID # Merge commit ko first-parent baseline se revert karta hai
+git revert --abort # In-progress revert cancel karta hai
+git reflog # Local HEAD movements aur recovery candidates dikhata hai
+git reflog show main # Main branch ke local ref movements dikhata hai
+git branch rescue COMMIT_ID # Purane commit ko rescue branch se reachable banata hai
+git clean -nd # Untracked files/directories removal ka preview dikhata hai
+git clean -fd # WARNING: Untracked files aur directories delete karta hai
+git clean -ndx # Ignored files samet deletion preview dikhata hai
+git clean -fdx # WARNING: Ignored aur untracked data permanently delete kar sakta hai
+git fsck --full # Repository object integrity check karta hai
+git fsck --lost-found # Dangling objects recovery ke liye lost-found mein likhta hai
+
+12. TAGS AND RELEASES
+git tag # Local tags list karta hai
+git tag -l 'v1.*' # Pattern match karne wale tags dikhata hai
+git tag v1.0 # Lightweight tag banata hai
+git tag -a v1.1 -m 'Release 1.1' # Annotated release tag banata hai
+git tag -s v1.2 -m 'Signed release' # Configured key se signed tag banata hai
+git tag -v v1.2 # Signed tag verify karta hai
+git show v1.1 # Tag aur target commit ki detail dikhata hai
+git push origin v1.1 # Selected tag remote par push karta hai
+git push origin --tags # Sab local tags push karta hai
+git tag -d v1.0 # Local tag delete karta hai
+git push origin --delete tag v1.0 # Remote tag delete karta hai
+git describe --tags --always # Reachable tag aur commit se version identifier banata hai
+git archive --format=zip -o release.zip v1.1 # Tagged tracked source ka ZIP banata hai
+
+13. IGNORE AND ATTRIBUTES
+printf '*.log\n.env\n' >> .gitignore # Logs aur environment secret file ko ignore list mein add karta hai
+git check-ignore -v app.log # Ignore rule aur source file identify karta hai
+git ls-files # Index mein tracked files list karta hai
+git ls-files --others --exclude-standard # Non-ignored untracked files dikhata hai
+git ls-files -ci --exclude-standard # Tracked files dikhata hai jo ignore rules match karti hain
+git add -f example.log # Ignored file ko explicitly stage karta hai
+git check-attr -a -- file.txt # File par effective Git attributes dikhata hai
+printf '* text=auto\n*.sh text eol=lf\n' >> .gitattributes # Text normalization aur shell script LF endings configure karta hai
+git add --renormalize . # Tracked files par updated normalization rules apply karke stage karta hai
+
+14. SSH AND AUTHENTICATION
+ssh-keygen -t ed25519 -C 'you@example.com' # SSH key pair generate karta hai; private key share mat karo
+eval "$(ssh-agent -s)" # Current shell ke liye SSH agent start karta hai
+ssh-add ~/.ssh/id_ed25519 # Private key agent mein load karta hai
+ssh-add -l # Agent mein loaded key fingerprints dikhata hai
+cat ~/.ssh/id_ed25519.pub # Public key dikhata hai jo GitHub settings mein add kar sakte ho
+ssh -T git@github.com # GitHub SSH authentication test karta hai; shell access nahi milta
+git config --global credential.helper cache # HTTPS credentials temporary memory cache mein rakhta hai
+git config --show-origin --get-all credential.helper # Configured credential helpers identify karta hai
+# HTTPS GitHub push ke liye supported credential manager ya PAT use karo; token URL mein mat likho.
+
+15. SUBMODULES AND WORKTREES
+git submodule add URL vendor/lib # External repository ko pinned submodule ke roop mein add karta hai
+git submodule status --recursive # Submodule commit aur initialization status dikhata hai
+git submodule update --init --recursive # Recorded commits par submodules initialize/update karta hai
+git submodule update --remote # Configured remote branch se submodule update karta hai; parent change commit karo
+git submodule sync --recursive # .gitmodules URLs local configuration mein sync karta hai
+git submodule foreach 'git status -sb' # Har initialized submodule ki status dikhata hai
+git worktree list # Linked working directories list karta hai
+git worktree add -b hotfix ../nginx-hotfix main # Separate directory mein new hotfix branch checkout karta hai
+git worktree remove ../nginx-hotfix # Clean linked working directory remove karta hai
+git worktree prune # Missing worktree ki stale metadata clean karta hai
+
+16. DEBUGGING AND BISECT
+git bisect start # Binary search debugging session start karta hai
+git bisect bad HEAD # Current commit ko bad mark karta hai
+git bisect good GOOD_COMMIT_ID # Known working commit ko good mark karta hai
+git bisect good # Current tested commit ko good mark karta hai
+git bisect bad # Current tested commit ko bad mark karta hai
+git bisect skip # Untestable commit skip karta hai
+git bisect run ./test.sh # Test exit codes se automatic regression search karta hai
+git bisect log # Bisect decisions dikhata hai
+git bisect reset # Original checkout restore karke session end karta hai
+git grep -n 'listen' # Tracked files mein text aur line numbers search karta hai
+git grep -n 'listen' main # Main commit tree mein text search karta hai
+git merge-base main feature/nginx # Common ancestor commit identify karta hai
+git rev-list --left-right --count main...origin/main # Local aur remote unique commit counts dikhata hai
+git range-diff OLD_BASE..OLD_TIP NEW_BASE..NEW_TIP # Do commit series ke patches compare karta hai
+GIT_TRACE=1 git fetch origin # Git internal command execution trace dikhata hai
+GIT_TRACE_CURL=1 GIT_TRACE_CURL_NO_DATA=1 git fetch origin # HTTP transport debug karta hai; output share karne se pehle secrets redact karo
+
+17. PATCHES, BACKUP AND MAINTENANCE
+git diff > changes.patch # Unstaged tracked diff ko patch file mein save karta hai
+git apply --check changes.patch # Patch apply hone ki compatibility check karta hai
+git apply changes.patch # Patch working tree par apply karta hai
+git apply --index changes.patch # Patch working tree aur index dono par apply karta hai
+git format-patch -1 HEAD # Latest commit ka email-style patch banata hai
+git am 0001-example.patch # Email-style patch se commit recreate karta hai
+git am --abort # In-progress patch application cancel karta hai
+git bundle create backup.bundle --all # Refs aur reachable history ka portable backup banata hai; working edits nahi
+git bundle verify backup.bundle # Bundle validity aur prerequisites check karta hai
+git clone backup.bundle restored-repo # Bundle se local repository restore karta hai
+git count-objects -vH # Object database disk usage dikhata hai
+git gc # Default policy ke hisaab se repository housekeeping karta hai
+git maintenance run # Configured maintenance tasks run karta hai
+git repack -ad # Reachable objects ko pack karke redundant packs remove karta hai
+git sparse-checkout init --cone # Selected directories checkout karne ka mode initialize karta hai
+git sparse-checkout set config docs # Sirf specified directories aur required ancestor files checkout karta hai
+git sparse-checkout disable # Full working tree restore karta hai
+
+18. ADVANCED INTERNAL COMMANDS
+git rev-parse HEAD # Current commit ka full object ID dikhata hai
+git cat-file -t HEAD # Object type dikhata hai
+git cat-file -p HEAD # Commit object ka raw readable content dikhata hai
+git ls-tree -r HEAD # Commit tree ke files aur object IDs dikhata hai
+git show-ref # Local refs aur object IDs list karta hai
+git symbolic-ref HEAD # Current symbolic branch ref dikhata hai
+git for-each-ref refs/heads # Local branch refs list karta hai
+git hash-object file.txt # File content ka Git object ID calculate karta hai
+git write-tree # Current index se tree object create karta hai
+
+19. GIT LFS (EXTRA TOOL REQUIRED)
+git lfs install # Installed Git LFS ke hooks configure karta hai
+git lfs track '*.zip' # ZIP files ke liye LFS tracking attributes set karta hai
+git add .gitattributes # LFS tracking rules stage karta hai
+git lfs ls-files # LFS tracked files list karta hai
+git lfs pull # Current checkout ke LFS objects download karta hai
+git lfs status # LFS files ki local aur push status dikhata hai
+
+20. PRACTICAL NGINX WORKFLOW
+# Existing repo mein feature workflow; remote URL aur branch rules verify karo.
+git switch main # Main branch select karta hai
+git pull --ff-only origin main # Main ko safely fast-forward update karta hai
+git switch -c feature/nginx-config # Nginx configuration ke liye feature branch banata hai
+printf 'FROM nginx:alpine\n' > Dockerfile # Example Dockerfile banata hai; existing file overwrite hogi
+git add Dockerfile # Dockerfile stage karta hai
+git diff --cached # Commit se pehle staged change review karta hai
+git commit -m 'Add Nginx Dockerfile' # Nginx change commit karta hai
+git push -u origin feature/nginx-config # Feature branch remote par upload karta hai
+# GitHub/GitLab par Pull Request/Merge Request create karo, CI aur review complete karo.
+git switch main # Merge ke baad main par switch karta hai
+git pull --ff-only origin main # Approved merged history local mein fetch karta hai
+git branch -d feature/nginx-config # Merged local branch safely remove karta hai; squash merge par reject ho sakta hai
+
+NOTE: Git ke har version, extension aur low-level command ka har option yahan exhaustively cover nahi hai.
+Installed version ki complete command list ke liye git help -a aur individual manual use karo.
+Examples live remote par execute nahi kiye gaye hain.
