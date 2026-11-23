@@ -1,0 +1,414 @@
+=====================================================================
+SENIOR CLOUD ENGINEER INTERVIEW QUESTION BANK
+AWS SYSTEM DESIGN, LINUX, NETWORKING, TERRAFORM, DOCKER, KUBERNETES
+Target: 7-8 years experience (Amex-style fintech interviews)
+=====================================================================
+
+CONTENTS:
+  PART 1: AWS / SYSTEM DESIGN (80 questions, Sections A to I)
+  PART 2: LINUX (15), NETWORKING (15), TERRAFORM (15), DOCKER (15), KUBERNETES (15)
+  Total: 155 questions. Original questions are all included; new ones are mixed in topic-wise.
+
+=====================================================================
+PART 1: AWS / SYSTEM DESIGN - 80 SCENARIO BASED QUESTIONS
+=====================================================================
+
+HOW TO ANSWER (har question ke liye):
+1. Pehle requirement aur constraint clearly likho (scale, cost, latency, availability, compliance).
+2. Jo service choose kar rahe ho, kyun kar rahe ho - detail mein prose mein.
+3. Alternatives kyun reject kiye (jaise ECS ki jagah EKS kyun nahi).
+4. Cost ka trade-off, operational overhead, aur failure scenarios.
+5. Scale 10x ya 100x ho jaye to kya change hoga.
+Sirf diagram mat banao. Har component ka role aur data flow words mein explain karo.
+
+---------------------------------------------------------------------
+SECTION A: COMPUTE AUR SCALING
+---------------------------------------------------------------------
+
+Q1. Ek startup ek hi server (EC2) use karti hai aur 1,000 users aate hain. Kal achanak 1 lakh users aa gaye aur cost bhi optimize rakhni hai. Kaun kaun si services use karoge (ALB, Auto Scaling Group, RDS, ElastiCache, CloudFront, etc.), kis order mein, aur kyun? ECS ki jagah EKS kyun nahi (ya kab EKS)?
+
+Q2. Ek Node.js app EC2 pe chal raha hai. Traffic subah 9 se 11 tak bahut high hota hai, baaki time almost zero. Cost kam rakhni hai. Auto Scaling Group, Lambda ya Fargate mein se kya use karoge, aur kyun?
+
+Q3. App ECS pe chal raha hai. Team bol rahi hai "EKS pe migrate karte hain". Kab EKS justify hota hai aur kab ECS hi kaafi hai? Cost aur operational overhead dono explain karo.
+
+Q4. Fargate vs EC2 launch type: 100 containers 24x7 chalte hain. Cost ke hisaab se kaunsa better hai? Spot instances ka use kab safe hai aur kab nahi?
+
+Q5. Ek image-resizing feature hai jo upload pe trigger hota hai. Roz 500 uploads se achanak 5 lakh uploads ho jaate hain. Lambda use karoge ya EC2 workers? Concurrency limits, cold start aur cost ka kya hoga?
+
+Q6. Ek ML inference API hai jo GPU maangti hai aur traffic unpredictable hai. GPU cost kaise control karoge? (SageMaker endpoints, Inferentia, Spot, batching, scale-to-zero)
+
+Q7. Lambda ke 15 minute timeout se zyada chalne wala job hai (video processing, report generation). Step Functions, Fargate task, AWS Batch ya EC2 mein se kya choose karoge, aur kyun?
+
+Q8. Auto Scaling policy design karo: target tracking, step scaling, scheduled scaling aur predictive scaling mein se kab kaunsi use karoge? Scale-out fast aur scale-in slow kyun rakhte hain?
+
+---------------------------------------------------------------------
+SECTION B: DATABASE, DATA AUR ANALYTICS
+---------------------------------------------------------------------
+
+Q9. Ek app RDS MySQL use karta hai. Read traffic 50x ho gaya hai lekin writes same hain. Read replicas, ElastiCache ya Aurora, kya karoge aur kis order mein?
+
+Q10. E-commerce flash sale mein 10 lakh concurrent users hain. DynamoDB vs RDS vs Aurora, kaunsa choose karoge? On-demand vs provisioned capacity ka decision kaise loge?
+
+Q11. Database ek region mein hai aur ab Europe aur India dono se users aa rahe hain. Latency kaise kam karoge? Aurora Global Database, DynamoDB Global Tables ya Read Replicas?
+
+Q12. Analytics dashboard heavy queries chalata hai aur production DB slow ho jaata hai. Redshift, Athena ya read replica, kaunsa aur kyun? Data kaise move karoge (DMS, Zero-ETL, Glue)?
+
+Q13. DynamoDB mein "hot partition" problem aa rahi hai. Kaise diagnose karoge aur partition key design kaise badloge? GSI/LSI ka role kya hai?
+
+Q14. RDS mein 2 TB ka table hai aur queries slow hain. Indexing, partitioning, sharding, ya Aurora migration, kya aur kis order mein? Zero-downtime migration kaise karoge?
+
+Q15. Multi-tenant SaaS hai jisme 5,000 customers hain. Database per tenant, schema per tenant ya shared tables, kaunsa model choose karoge? Noisy neighbor aur cost ka trade-off batao.
+
+Q16. Caching strategy design karo: cache-aside, write-through, write-behind. Redis vs Memcached kab? Cache stampede aur thundering herd se kaise bachoge?
+
+Q17. Governed data lake design karo: S3, Glue, Lake Formation, column-level access, PII masking, cross-account sharing. Athena vs Redshift vs EMR ka decision kaise loge?
+
+Q18. Customer 360 platform jisme real-time aur batch dono chahiye: Kinesis/MSK, Flink, Iceberg tables, Redshift. Lambda vs Kappa architecture ka discussion karo aur late-arriving data kaise handle karoge.
+
+Q19. Oracle database ko Aurora PostgreSQL pe migrate karna hai (2 TB, minimal downtime). SCT, DMS (full load plus CDC), data validation, cutover aur rollback plan batao. Stored procedures aur sequences ka kya karoge?
+
+Q20. Transaction search feature design karo ("last 7 saal ke transactions mein search"): OpenSearch vs DynamoDB vs Aurora, indexing pipeline, eventual consistency ka effect, aur cost control (hot/warm/cold tiers).
+
+---------------------------------------------------------------------
+SECTION C: STORAGE AUR CONTENT DELIVERY
+---------------------------------------------------------------------
+
+Q21. Video streaming startup ke 1 lakh users aa gaye. Video S3 mein hain aur bandwidth cost bahut zyada hai. CloudFront ka role kya hai aur cost kaise girta hai? Origin Shield aur cache hit ratio ka kya role hai?
+
+Q22. S3 mein 50 TB purana data hai jo mahine mein ek baar access hota hai. Standard, IA, Glacier, Intelligent-Tiering mein se kya choose karoge? Lifecycle policy kaise banaoge? Retrieval fees aur minimum storage duration ka dhyan rakho.
+
+Q23. Static React website host karni hai, minimum cost aur global scale ke saath. EC2 pe nginx vs S3 + CloudFront vs Amplify, kaunsa aur kyun?
+
+Q24. Users ko large files (5 GB tak) upload karni hain. Server ke through upload karoge ya directly S3? Presigned URLs, multipart upload, Transfer Acceleration ka role samjhao. Security kaise ensure karoge?
+
+Q25. Shared file system chahiye jo 50 EC2/containers ek saath mount karein. EFS, FSx ya S3 mein se kya choose karoge? Throughput modes aur cost ka trade-off batao.
+
+Q26. Global customers ke liye low-latency web/mobile architecture: CloudFront, Global Accelerator, regional APIs, edge compute. Static vs dynamic content ka alag treatment aur data residency constraints kaise handle karoge?
+
+---------------------------------------------------------------------
+SECTION D: NETWORKING AUR TRAFFIC
+---------------------------------------------------------------------
+
+Q27. Ek server pe app hai aur ab 3 servers lagane hain. ALB vs NLB vs API Gateway, kaunsa use karoge? Layer 4 aur Layer 7 ka difference decision ko kaise affect karta hai?
+
+Q28. API ko bot traffic aur DDoS se bachana hai bina cost bahut badhaye. WAF, Shield Standard/Advanced aur CloudFront ko kaise combine karoge? Rate limiting kahan lagaoge?
+
+Q29. Microservices ek doosre se baat karte hain aur NAT Gateway ka bill bahut zyada hai. Cost kahan leak ho rahi hai aur fix kaise karoge? (VPC Endpoints, PrivateLink, same-AZ traffic)
+
+Q30. VPC design karo ek production app ke liye: public/private subnets, kitne AZ, CIDR planning, security groups vs NACLs. 50 VPCs ko connect karna ho to Transit Gateway vs VPC Peering kab?
+
+Q31. Company ka on-premise data center aur AWS connect karna hai. Site-to-Site VPN vs Direct Connect, kaunsa aur kab? Failover aur cost ka plan batao.
+
+Q32. Route 53 routing policies: latency, weighted, failover, geolocation. Blue/green deployment aur multi-region failover mein inka use kaise karoge? DNS TTL ka effect kya hota hai?
+
+Q33. Zero-trust, no-direct-internet architecture design karo: PrivateLink, VPC endpoints, centralized egress with Network Firewall, inspection VPC, Gateway Load Balancer. Cost aur complexity ka trade-off batao.
+
+Q34. IP exhaustion aur service limits: EKS mein pods ko IP nahi mil rahe, Lambda throttle ho raha hai, aur ENI limits hit ho rahe hain. Kaise diagnose aur fix karoge (secondary CIDR, prefix delegation, IPv6, quota increases)?
+
+Q35. Mainframe/on-prem core banking systems ko AWS ke saath integrate karna hai: Direct Connect, MQ/Kafka bridge, CDC, strangler pattern, aur dono taraf consistency kaise maintain karoge?
+
+---------------------------------------------------------------------
+SECTION E: ASYNC PROCESSING AUR DECOUPLING
+---------------------------------------------------------------------
+
+Q36. User order place karta hai to email, invoice PDF, inventory update aur analytics sab hona chahiye. Spike mein system crash ho jaata hai. SQS, SNS, EventBridge ya Kinesis, kaunsa kahan use karoge?
+
+Q37. Payment system ke liye SQS Standard vs FIFO vs Kafka (MSK): kya choose karoge? Ordering, duplicates aur cost ko dhyan mein rakho. Idempotency kaise implement karoge?
+
+Q38. IoT startup mein 10 lakh devices har second data bhej rahe hain. Kinesis Data Streams vs Kafka vs SQS vs IoT Core, kaunsa aur kyun?
+
+Q39. SQS consumer baar baar fail ho raha hai aur poison messages queue block kar rahe hain. Dead Letter Queue, visibility timeout, retry with backoff ka design samjhao.
+
+Q40. Distributed transaction chahiye jisme 4 microservices involve hain (order, payment, inventory, shipping) aur beech mein failure ho sakta hai. Saga pattern, Step Functions aur 2-phase commit mein se kya choose karoge?
+
+Q41. Double charge kaise prevent karoge jab client retry karta hai, network timeout aata hai, aur consumer duplicate message process karta hai? End-to-end idempotency key design batao (API layer, DB layer, queue layer).
+
+Q42. 100 million users ko push/SMS/email notifications bhejne ka system design karo. Fan-out, rate limiting per provider, retries with backoff, dedupe, user preferences aur priority queues (OTP vs marketing) kaise handle karoge?
+
+Q43. Large-scale event-driven architecture design karo: EventBridge vs SNS+SQS vs MSK. Schema registry, event replay, ordering, consumer lag, aur poison events ka handling explain karo.
+
+Q44. Distributed job scheduler design karo jo millions of scheduled tasks (reminders, statements, retries) reliably chalaye: EventBridge Scheduler, SQS delay, Step Functions, DynamoDB TTL, aur exactly-once ka reality.
+
+---------------------------------------------------------------------
+SECTION F: SECURITY AUR COMPLIANCE
+---------------------------------------------------------------------
+
+Q45. IAM design karo 100 engineers ki company ke liye: roles vs users, least privilege, permission boundaries, SSO (IAM Identity Center). Long-lived access keys kyun avoid karte hain?
+
+Q46. Ek developer ne galti se AWS access key GitHub pe push kar di. Incident response kya hoga? Aage ke liye prevention kaise karoge?
+
+Q47. Secrets (DB passwords, API keys) kahan store karoge? Secrets Manager vs Parameter Store vs env variables. Rotation aur cost ka trade-off batao.
+
+Q48. Company ko PCI-DSS ya HIPAA compliance chahiye. Encryption at rest/in transit, KMS key strategy, CloudTrail, Config, audit logging kaise design karoge?
+
+Q49. Multi-account strategy: ek account mein sab kuch kyun risky hai? AWS Organizations, SCPs, Control Tower aur landing zone ka design batao (prod, staging, security, logging accounts).
+
+Q50. PCI cardholder data environment ko baaki systems se segment kaise karoge? Tokenization, separate AWS account, CloudHSM vs KMS, aur PCI scope reduce karne ki strategy batao.
+
+Q51. Regulated enterprise ke liye landing zone design karo: 500 AWS accounts, SCPs, centralized logging aur security accounts, account vending automation, aur guardrails jo developers ko slow na karein.
+
+Q52. Ransomware ya insider attack se backups kaise protect karoge? AWS Backup Vault Lock, cross-account aur cross-region copies, logical air gap, aur restore drills ka plan batao.
+
+Q53. Session aur authentication service design karo 100M users ke liye: JWT vs server-side sessions, ElastiCache, token revocation, refresh token rotation aur brute-force protection.
+
+---------------------------------------------------------------------
+SECTION G: OBSERVABILITY, CI/CD AUR OPERATIONS
+---------------------------------------------------------------------
+
+Q54. Production mein latency achanak 5x ho gayi. Debug flow batao: metrics, logs, traces (CloudWatch, X-Ray, OpenTelemetry). Kahan se shuru karoge aur kyun?
+
+Q55. Monitoring aur alerting strategy: SLI, SLO, error budget, alarm fatigue. Kaunse alerts page karne chahiye aur kaunse sirf ticket?
+
+Q56. CI/CD pipeline design karo: rolling, blue/green, canary deployments. Rollback kaise automate karoge? Database schema changes ke saath zero-downtime deploy kaise?
+
+Q57. Infrastructure as Code: Terraform vs CloudFormation vs CDK. State management, drift detection, aur team collaboration ka plan kya hoga?
+
+Q58. CloudWatch Logs ka bill bahut zyada hai. Kahan paisa ja raha hai? Log retention, sampling, S3 export, aur alternatives (OpenSearch, Loki) ka cost comparison karo.
+
+Q59. 500 microservices ke liye observability platform design karo: OpenTelemetry, metrics cardinality, trace sampling (head vs tail), log cost, aur SLO dashboards. Build vs buy ka discussion karo.
+
+Q60. Stateful service ka zero-downtime deployment karo jisme DB schema change bhi hai: expand-contract pattern, feature flags, dark launches, backward-compatible APIs, aur rollback kab possible hai kab nahi.
+
+---------------------------------------------------------------------
+SECTION H: COST, RELIABILITY AUR DISASTER RECOVERY
+---------------------------------------------------------------------
+
+Q61. Startup ka AWS bill $2,000 se $15,000 ho gaya. Investigate kaise karoge? Cost Explorer, Cost Allocation Tags, Savings Plans, Reserved Instances aur Spot ka role kya hai?
+
+Q62. Ek hi region mein sab kuch hai aur region down ho gaya. DR strategy: Backup & Restore, Pilot Light, Warm Standby, Multi-Site Active-Active mein se kaunsi choose karoge? RTO/RPO aur startup budget ke hisaab se practical kya hai?
+
+Q63. 99.99% availability ka target hai. Ye kitna downtime per year allow karta hai? Multi-AZ vs multi-region, single points of failure, aur health checks se kaise achieve karoge?
+
+Q64. Savings Plans vs Reserved Instances vs Spot: ek workload mein 40% baseline steady hai aur 60% spiky. Commitment kitni loge aur kis service pe?
+
+Q65. Chaos engineering ka kya matlab hai? Tum production mein ek AZ fail karke test karna chahte ho. Kaise plan karoge aur blast radius kaise limit karoge?
+
+Q66. Resilience patterns explain karo: timeouts, retries with jitter, circuit breaker, bulkhead, load shedding. Retry storm (metastable failure) kaise ek chhoti dikkat ko outage bana deta hai aur kaise bachoge?
+
+Q67. Region failure ke liye "static stability" kya hota hai? Control plane vs data plane dependency, Route 53 ARC, aur failover ke time pe kaunse AWS APIs pe depend nahi karna chahiye?
+
+Q68. Black Friday/festive sale ki readiness plan karo: load testing, service quotas, ALB/DynamoDB pre-warming, dependency capacity, game days, aur rollback/kill switches. Kya checklist banaoge?
+
+Q69. FinOps framework design karo: tagging enforcement, showback/chargeback, anomaly detection, rightsizing automation, unit economics (cost per transaction). Engineers ko cost ownership kaise doge bina innovation slow kiye?
+
+---------------------------------------------------------------------
+SECTION I: ARCHITECTURE, MIGRATION AUR END-TO-END DESIGN (SENIOR LEVEL)
+---------------------------------------------------------------------
+
+Q70. Monolith ko microservices mein todna hai. Strangler fig pattern kya hai? Kab microservices ek galat decision hota hai? Team size aur operational cost ka role batao.
+
+Q71. 200 TB ka on-premise data AWS pe migrate karna hai ek mahine mein. Network transfer, Snowball/Snowmobile, DataSync, DMS mein se kya aur kyun? Cutover plan kaise banaoge?
+
+Q72. Design karo: ek URL shortener ya ride-sharing app jo 10 crore users handle kare. Requirements clarify karo, capacity estimation (QPS, storage), API design, data model, caching, sharding, aur bottlenecks explain karo - poora end-to-end, services ke naam aur reasons ke saath.
+
+Q73. Card payment authorization system design karo: 50,000 TPS peak, p99 latency 200 ms se kam, 99.99% availability, PCI-DSS in scope. Request ka poora data flow words mein explain karo (edge se DB tak), aur batao ki kahan sync aur kahan async rakhoge.
+
+Q74. Payments platform ko multi-region active-active banana hai. Data consistency, conflict resolution aur RPO near-zero kaise achieve karoge? Aurora Global Database vs DynamoDB Global Tables ka trade-off batao. Kab active-passive hi sahi hai?
+
+Q75. Real-time fraud detection design karo jo har transaction pe 100 ms ke andar score de. Feature store, streaming (Kinesis/MSK), model hosting (SageMaker) aur fallback kya hoga agar model service down ho jaye (fail-open ya fail-closed, aur kyun)?
+
+Q76. Immutable, auditable transaction ledger design karo jo 7 saal ka history rakhe. Event sourcing, Aurora vs DynamoDB, S3 Object Lock (WORM), aur reconciliation ka approach explain karo.
+
+Q77. Rewards/loyalty points system design karo (Amex-style): millions of accounts, strong consistency on balance, concurrent debit/credit, hot accounts, full audit trail. Locking, optimistic concurrency aur idempotency kaise handle karoge?
+
+Q78. 1,000 internal teams ke liye API platform design karo: API Gateway vs ALB, authN/authZ (OIDC, Cognito, mTLS), throttling per team, versioning, aur developer onboarding. Central platform team ka operational load kaise limit karoge?
+
+Q79. Multi-tenant EKS platform banana hai jahan 50 teams hain: namespace isolation, quotas, network policies, cost chargeback aur guardrails (Kyverno/OPA). Shared cluster vs cluster-per-team ka decision kaise loge?
+
+Q80. End-to-end design: ek internal developer platform (IDP) banao jahan developer 10 minute mein secure, compliant service deploy kar sake. Golden paths, templates, CI/CD, policy as code, aur adoption kaise drive karoge?
+
+=====================================================================
+PART 2: LINUX, NETWORKING, TERRAFORM, DOCKER, KUBERNETES
+SCENARIO BASED QUESTIONS (SENIOR CLOUD ENGINEER)
+=====================================================================
+
+HOW TO ANSWER:
+1. Pehle problem ko narrow down karo: kya check karoge, kis order mein, aur kyun.
+2. Commands ke naam bolo (ss, dig, kubectl describe, terraform state, etc.) aur batao ki output se kya pata chalta hai.
+3. Root cause aur permanent fix alag-alag explain karo (quick fix vs long-term fix).
+4. Production mein kya risk hai, wo bhi batao.
+
+---------------------------------------------------------------------
+SECTION A: LINUX (15 Questions)
+---------------------------------------------------------------------
+
+Q1. Production server slow hai. Tum SSH karte ho. Step-by-step kya check karoge? (load average, CPU, memory, disk I/O, network) Har step pe kaunsa command use karoge aur output se kya samjhoge?
+
+Q2. Server pe disk 100% full dikha raha hai, lekin "du" se jodne par space kam nikalta hai. Aisa kyun ho sakta hai? (deleted files jo process ne khole rakhe hain, inode exhaustion) Kaise debug aur fix karoge?
+
+Q3. Load average 20 hai lekin CPU usage sirf 10% hai. Iska matlab kya ho sakta hai? (I/O wait, uninterruptible sleep, D state processes) Kaise investigate karoge?
+
+Q4. Ek process ko Linux ne OOM killer se maar diya. Kaise confirm karoge? Kya root cause ho sakte hain? Memory limits, swap, aur overcommit ka role samjhao.
+
+Q5. Zombie process aur orphan process mein kya difference hai? Zombie kaise bante hain aur unhe kaise saaf karoge?
+
+Q6. "Too many open files" error aa raha hai. ulimit, file descriptors aur systemd limits ka relation samjhao. Permanent fix kaise karoge?
+
+Q7. Ek service reboot ke baad automatically start honi chahiye aur fail ho to restart bhi. systemd unit file kaise likhoge? journalctl se logs kaise dekhoge?
+
+Q8. File permissions, setuid, sticky bit aur ACLs kya hain? Ek shared directory mein multiple users ko kaam karna hai lekin ek doosre ki files delete nahi kar sakte, kaise set karoge?
+
+Q9. EC2 instance pe CPU slow lag raha hai lekin application load normal hai. CPU steal time, T-series CPU credit exhaustion aur noisy neighbor ko kaise detect karoge (top, mpstat, CloudWatch)? Permanent fix kya hoga?
+
+Q10. Ek process hang ho gaya hai: na CPU kha raha hai na response de raha hai. strace, lsof, perf, pstack aur /proc se kaise investigate karoge? eBPF tools (bcc, bpftrace) kab useful hain?
+
+Q11. EBS volume pe disk latency high hai. iostat -x, await, util% aur queue depth se kya samjhoge? gp3 IOPS/throughput limits, burst balance, aur instance-level EBS bandwidth limit ka role batao.
+
+Q12. Memory ke bare mein: "free" kam dikha raha hai lekin kya sach mein problem hai? Page cache vs available memory, swap thrashing, slab leak, aur memory leak ko vmstat, smem aur /proc/meminfo se kaise pakdoge?
+
+Q13. EC2 instance reboot ke baad SSH nahi ho raha (galat fstab ya sshd config). Bina SSH ke recover kaise karoge? SSM Session Manager, EC2 Serial Console, aur volume detach/attach ka flow batao.
+
+Q14. 1,000 Linux servers ko zero-downtime patch kaise karoge? SSM Patch Manager vs immutable golden AMI pipeline, canary patching, kernel live patching, aur rollback ka plan batao.
+
+Q15. Compliance (CIS/PCI) ke liye Linux hardening plan: SSH config, sudo policies, auditd, SELinux/AppArmor, FIPS mode, file integrity monitoring, aur continuous compliance verification (Inspector, Config).
+
+---------------------------------------------------------------------
+SECTION B: NETWORKING (15 Questions)
+---------------------------------------------------------------------
+
+Q16. Browser mein URL daalne se page dikhne tak poora flow explain karo: DNS, TCP handshake, TLS handshake, HTTP request, load balancer, backend. Har step pe kya fail ho sakta hai?
+
+Q17. Application kabhi-kabhi "connection timed out" deti hai aur kabhi "connection refused". In dono mein kya difference hai aur har ek ka matlab kya hai? Kaise debug karoge?
+
+Q18. Ek EC2 se doosre EC2 tak connect nahi ho raha. Debug flow batao: security group, NACL, route table, OS firewall (iptables), app listening hai ya nahi (ss -tlnp). Kis order mein check karoge?
+
+Q19. DNS troubleshooting: dig, nslookup, TTL, CNAME vs A record, aur negative caching. Ek domain kuch users ke liye resolve ho raha hai aur kuch ke liye nahi, kyun ho sakta hai?
+
+Q20. TLS certificate expire ho gaya aur production down hai. Turant kya karoge? Aage ke liye automation (ACM, cert-manager, monitoring) kaise banaoge?
+
+Q21. Latency badh gayi hai. Packet loss, retransmissions, MTU issues, aur TCP window size ka role samjhao. tcpdump aur Wireshark se kya dekhoge?
+
+Q22. NAT, SNAT, DNAT aur port forwarding kya hain? Private subnet ke instances internet kaise access karte hain? Source IP preserve kab zaroori hota hai?
+
+Q23. Load balancer ke peeche kuch requests 502/503/504 de rahe hain. In teeno ka matlab kya hai aur har ek ka typical root cause kya hota hai? (timeouts, health checks, backend crash, idle timeout mismatch)
+
+Q24. VPN ya overlay network pe large requests fail ho rahe hain lekin chhote chal rahe hain. MTU aur Path MTU Discovery ka issue kaise pehchanoge (ping -M do -s, tracepath)? Fix kya hoga (MSS clamping)?
+
+Q25. NLB ke peeche long-lived connections 350 second ke baad drop ho rahi hain. Idle timeout, TCP keepalive, aur ALB/NLB/client timeout mismatch ka relation samjhao. Standard timeout hierarchy kaise design karoge?
+
+Q26. NAT Gateway pe ErrorPortAllocation metric aa raha hai aur outbound connections fail ho rahe hain. SNAT port exhaustion ka matlab kya hai? Root cause aur fix batao (multiple NAT/EIPs, connection reuse, VPC endpoints).
+
+Q27. Direct Connect ke saath BGP: routes advertise/prefer kaise hote hain (local preference, AS-path prepending)? Failover time kaise kam karoge (BFD)? Asymmetric routing kaise problem karti hai?
+
+Q28. Hybrid DNS design karo: on-prem aur AWS dono ko ek doosre ke private zones resolve karne hain. Route 53 Resolver inbound/outbound endpoints, forwarding rules, split-horizon DNS aur loops se kaise bachoge?
+
+Q29. TLS deep dive: TLS termination at ALB vs end-to-end encryption, mTLS between services, TLS 1.2 vs 1.3, cipher suite selection, certificate pinning ke risks, aur handshake latency kaise kam karoge (session resumption)?
+
+Q30. Do companies merge hui hain aur dono ke VPCs ke CIDR overlap kar rahe hain. Connectivity kaise karoge? PrivateLink, NAT-based translation, secondary CIDR, ya re-IP: har option ke trade-offs batao.
+
+---------------------------------------------------------------------
+SECTION C: TERRAFORM (15 Questions)
+---------------------------------------------------------------------
+
+Q31. Terraform state file kya hai aur kyun zaroori hai? Remote backend (S3 + DynamoDB locking) kyun use karte hain? Agar state file corrupt ya delete ho jaye to kya karoge?
+
+Q32. Do engineers ek saath terraform apply chala dete hain. Kya hota hai? State locking kaise bachata hai? Lock stuck ho jaye to kya karoge (force-unlock ka risk)?
+
+Q33. Kisi ne console se manually ek resource badal diya (drift). Kaise detect karoge? terraform plan, refresh, import ka role kya hai? Drift ko roknay ke liye process kya banaoge?
+
+Q34. Ek existing resource jo console se bana tha, use Terraform ke under lana hai. terraform import aur import blocks kaise kaam karte hain? Config kaise generate karoge?
+
+Q35. Modules ka design: reusable module kaise banaoge? Versioning, input/output variables, aur module ko over-engineer karne ke risks kya hain?
+
+Q36. dev, staging aur prod environments ke liye Terraform structure kaise rakhoge? Workspaces vs separate directories vs Terragrunt, kaunsa aur kyun? State blast radius ka dhyan rakho.
+
+Q37. terraform plan mein ek database "destroy and recreate" dikha raha hai. Tum kya karoge? lifecycle (prevent_destroy, ignore_changes, create_before_destroy) ka use kab karoge?
+
+Q38. Terraform mein secrets (DB password) kaise handle karoge? State file mein plain text mein kyun aate hain? Sensitive variables, Secrets Manager, aur state encryption ka role batao. CI/CD pipeline mein plan/apply approval flow kaise rakhoge?
+
+Q39. Ek monolithic state file mein 2,000 resources hain aur plan 20 minute leta hai. State ko safely split kaise karoge (terraform state mv, moved blocks, import)? Bina resources destroy kiye refactor ka plan batao.
+
+Q40. Provider major version upgrade se plan mein unexpected changes aa rahe hain. Version pinning, .terraform.lock.hcl, staged upgrade across environments aur rollback kaise handle karoge?
+
+Q41. Terraform CI/CD pipeline design karo: PR pe plan, approval ke baad apply, policy as code (OPA, Sentinel, Checkov), cost estimation, aur drift detection schedule. Atlantis vs Terraform Cloud vs GitHub Actions ka trade-off batao.
+
+Q42. count vs for_each: list ke beech se ek item hataane se baaki resources destroy/recreate kyun hote hain? Stable keys ka concept aur safe refactoring kaise karoge?
+
+Q43. Multi-account aur multi-region deployments: provider aliases, assume_role, aur 200 accounts mein same baseline (VPC, logging, IAM) kaise roll out karoge? AWS Account Factory for Terraform (AFT) ka role kya hai?
+
+Q44. Terraform mein rollback nahi hota. Bad apply ke baad production kaise recover karoge? Versioned state, git revert + apply, targeted fixes, aur risky changes ke liye safeguards (prevent_destroy, staged rollout) batao.
+
+Q45. State security: state mein secrets aur sensitive data hota hai. State bucket access control, encryption, state poisoning risk, aur CI role ke least privilege kaise design karoge? Ephemeral values/write-only attributes ka role kya hai?
+
+---------------------------------------------------------------------
+SECTION D: DOCKER (15 Questions)
+---------------------------------------------------------------------
+
+Q46. Container aur VM mein kya difference hai? Namespaces aur cgroups kya hain aur container isolation kaise deta hain? Container kitna secure hai VM ke comparison mein?
+
+Q47. Docker image ka size 1.5 GB hai. Kaise chhota karoge? Multi-stage builds, slim/alpine/distroless base images, layer caching, aur .dockerignore ka role samjhao.
+
+Q48. Dockerfile mein CMD vs ENTRYPOINT, COPY vs ADD, aur layer ordering ka difference batao. Build cache kab invalidate hota hai aur dependencies ko pehle copy karna kyun better hai?
+
+Q49. Container mein app root user se chal raha hai. Ye risk kyun hai? Non-root user, read-only filesystem, capabilities drop, aur image scanning (Trivy, ECR scanning) ka plan batao.
+
+Q50. Container start hote hi exit ho jaata hai. Kaise debug karoge? (docker logs, docker inspect, exit codes 0/1/137/139, docker run -it debug) Exit code 137 ka matlab kya hota hai?
+
+Q51. Data persistence: volumes vs bind mounts vs tmpfs. Container delete hone par data kyun jaata hai? Production mein stateful workloads container mein chalana chahiye ya nahi?
+
+Q52. Docker networking modes (bridge, host, none, overlay) explain karo. Do containers ek doosre se naam se kaise baat karte hain? Port mapping ke peeche kya hota hai?
+
+Q53. Container runtime internals: Docker Engine, containerd, runc, aur OCI spec ka relation. Kubernetes ne Docker (dockershim) kyun hataya aur ab kaunsa runtime use hota hai?
+
+Q54. Image supply chain security design karo: trusted base images, automated patching pipeline, image signing (cosign), SBOM, ECR immutable tags, vulnerability scanning gates, aur admission-time verification.
+
+Q55. Image tagging strategy: "latest" tag production mein kyun bura hai? Semantic version vs git SHA vs digest pinning. Rollback aur reproducibility kaise ensure karoge?
+
+Q56. Container CPU/memory limits aur runtime ka relation: JVM ya Node.js cgroup limits ko respect karte hain ya nahi? docker stats, cgroup files, aur galat heap sizing se OOMKill kaise hota hai?
+
+Q57. PID 1 problem: container mein SIGTERM app tak kyun nahi pahunchta aur zombies kyun jama hote hain? tini/dumb-init, exec form vs shell form (CMD), aur graceful shutdown kaise ensure karoge?
+
+Q58. CI mein Docker builds slow hain (15 minute). BuildKit cache mounts, remote/registry cache, layer ordering, multi-arch builds (amd64 + arm64 Graviton) aur build ko parallelize kaise karoge?
+
+Q59. Docker build mein secrets (npm token, SSH key) kaise handle karoge? Build args aur ENV layers mein kyun leak hote hain (docker history)? BuildKit secret mounts aur multi-stage ka role batao.
+
+Q60. Container escape aur privileged containers ka risk: docker.sock mount karna kyun khatarnak hai? seccomp, AppArmor, user namespaces, rootless containers, aur gVisor/Firecracker jaise stronger isolation kab chahiye?
+
+---------------------------------------------------------------------
+SECTION E: KUBERNETES (15 Questions)
+---------------------------------------------------------------------
+
+Q61. Kubernetes architecture explain karo: control plane (API server, etcd, scheduler, controller manager) aur worker node (kubelet, kube-proxy, container runtime). "kubectl apply" karne se pod chalne tak poora flow batao.
+
+Q62. Pod CrashLoopBackOff mein hai. Debug flow batao: kubectl describe, logs, logs --previous, events, liveness probe fail, config/secret missing, resource limits. Har kaaran ka alag fix kya hoga?
+
+Q63. Pod "Pending" state mein atka hai. Kaaran kya ho sakte hain? (insufficient resources, node selector/affinity, taints, PVC unbound, quota) Kaise diagnose karoge?
+
+Q64. Pod OOMKilled ho raha hai. Requests aur limits ka difference samjhao. CPU throttling aur memory kill mein kya fark hai? QoS classes (Guaranteed, Burstable, BestEffort) ka role batao.
+
+Q65. Liveness, readiness aur startup probes ka difference batao. Galat probe configuration se outage kaise ho sakta hai? Ek slow-starting app ke liye kya setup karoge?
+
+Q66. Kubernetes Services: ClusterIP, NodePort, LoadBalancer aur Ingress ka difference. Internal communication aur external traffic ke liye kaunsa kab use karoge? Service ke peeche traffic kaise route hota hai (kube-proxy, iptables/IPVS, endpoints)?
+
+Q67. HPA, VPA aur Cluster Autoscaler (ya Karpenter) kaise kaam karte hain? Pod scale-out hua lekin node nahi mila to kya hoga? Metrics server aur custom metrics ka role kya hai?
+
+Q68. RBAC kaise kaam karta hai? Role, ClusterRole, RoleBinding, ServiceAccount. Ek developer ko sirf ek namespace mein pods dekhne ka access dena hai, kaise setup karoge? EKS mein IAM ke saath mapping (IRSA / Pod Identity) kaise hota hai?
+
+Q69. Kubernetes mein zero-downtime deployment kaise karoge? Rolling update strategy (maxSurge, maxUnavailable), PodDisruptionBudget, graceful shutdown (preStop, terminationGracePeriod), aur readiness probe ka relation samjhao.
+
+Q70. Stateful workloads: Deployment vs StatefulSet. PersistentVolume, PVC, StorageClass kaise kaam karte hain? Node fail hone par pod doosri AZ mein jaye to EBS volume ka kya hoga?
+
+Q71. Secrets aur config management: ConfigMap vs Secret. Secrets base64 hote hain, encrypted nahi, to kaise secure karoge? (encryption at rest, External Secrets Operator, Secrets Manager, Sealed Secrets)
+
+Q72. Kubernetes cluster ko secure kaise karoge? Network policies, Pod Security Standards, image policies (admission controllers), private API endpoint, node hardening, aur runtime security (Falco) ka plan batao.
+
+Q73. EKS cluster upgrade kaise karoge production mein bina downtime ke? Control plane vs node group upgrade, deprecated APIs, add-on compatibility, aur rollback plan kya hoga?
+
+Q74. Cost optimization on Kubernetes: over-provisioned requests, idle nodes, Spot nodes, bin packing, Karpenter consolidation, aur namespace-level cost visibility (Kubecost) kaise implement karoge?
+
+Q75. Incident scenario: cluster upgrade ke baad achanak pods evict ho rahe hain, ImagePullBackOff aa raha hai aur API server overloaded hai. Triage flow, communication, rollback/mitigation aur post-incident (blameless postmortem) kaise handle karoge?
+
+=====================================================================
+BONUS TIPS (interview / Amex fintech)
+=====================================================================
+- Hamesha pehle clarifying questions poochho: users kitne, read/write ratio, latency target, budget, compliance.
+- Har choice ka "kyun" aur "kyun nahi" dono batao. Yahi senior level ki pehchaan hai.
+- Cost, reliability, security, performance, operational simplicity: ye 5 axes pe har design ko tolo (Well-Architected Framework).
+- Pehle simple design (1 server, 1 DB) se shuru karo, phir bottleneck dhundh ke step-by-step scale karo.
+- Troubleshooting questions mein hamesha "pehle kya check karoge aur kyun" bolo, seedha guess mat karo.
+- Har fix ke baad "future mein ye dobara na ho, iske liye kya karoge" zaroor batao (alerting, automation, runbook).
+- Real production story sunao (STAR format: Situation, Task, Action, Result). Senior interviews mein ye bahut kaam aata hai.
+- Fintech mein compliance (PCI-DSS, SOX, audit trails, data residency) aur correctness (idempotency, no double charge) ko har design mein mention karo.
+- Numbers batao: QPS, latency budget, RPO/RTO, downtime per year (99.99% = ~52 min/year).
+- Failure mode thinking: har component ke liye "ye fail hua to kya hoga" aur blast radius clearly bolo.
+=====================================================================
