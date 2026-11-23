@@ -1,0 +1,397 @@
+NETWORKING COMMANDS — LINUX / DEVOPS / CLOUD PRACTICAL REFERENCE
+================================================================
+Hinglish inline explanations | Ubuntu/Debian and RHEL families
+Examples Linux shell ke liye hain. eth0, ens33, IP, domain aur gateway apne environment ke hisab se replace karo.
+Ye reference hai, executable script nahi. Saare commands ek saath mat chalana.
+CHANGE = configuration badlegi; DANGER = connectivity/data loss possible. Remote SSH par especially careful raho.
+Packet capture aur scanning sirf authorized systems par karo. Captures mein sensitive data ho sakta hai.
+
+01. NETWORK INTERFACE AND IP ADDRESS
+-----------------------------------
+ip a # Sabhi interfaces aur IPv4/IPv6 addresses dikhata hai
+ip -br a # Short format mein interface status aur IP dikhata hai
+ip -4 addr # Sirf IPv4 addresses dikhata hai
+ip -6 addr # Sirf IPv6 addresses dikhata hai
+ip addr show dev eth0 # Specific interface ke addresses dikhata hai
+ip link show # Interface ka MAC, MTU aur link state dikhata hai
+ip -br link # Interfaces ki concise link information dikhata hai
+ip -s link show eth0 # RX/TX packets, errors aur drops dikhata hai
+ip -d link show # VLAN, tunnel aur link ki detailed properties dikhata hai
+hostname -I # Host ke configured IP addresses dikhata hai
+hostname -f # Host ka fully qualified domain name resolve karta hai
+ifconfig -a # Legacy tool se sabhi interfaces dikhata hai
+sudo ip link set eth0 up # CHANGE: Interface enable karta hai
+sudo ip link set eth0 down # DANGER: Interface disable karta hai, SSH disconnect ho sakta hai
+sudo ip addr add 192.0.2.10/24 dev eth0 # CHANGE: Temporary IPv4 address add karta hai
+sudo ip addr del 192.0.2.10/24 dev eth0 # CHANGE: Specific IP remove karta hai
+sudo ip link set eth0 mtu 1400 # CHANGE: Maximum transmission unit set karta hai
+sudo ethtool eth0 # Link speed, duplex aur physical link status dikhata hai
+sudo ethtool -i eth0 # Network driver aur firmware information dikhata hai
+sudo ethtool -S eth0 # NIC hardware statistics dikhata hai
+sudo ethtool -k eth0 # NIC offload features dikhata hai
+sudo ethtool -g eth0 # NIC ring buffer sizes dikhata hai
+sudo ethtool -l eth0 # NIC channel counts dikhata hai
+cat /sys/class/net/eth0/operstate # Interface operational state dikhata hai
+cat /sys/class/net/eth0/address # MAC address dikhata hai
+
+02. CONNECTIVITY AND PATH TROUBLESHOOTING
+----------------------------------------
+ping -c 4 1.1.1.1 # IPv4 connectivity, latency aur packet loss test karta hai
+ping -c 4 example.com # DNS resolution ke baad ICMP connectivity test karta hai
+ping -6 -c 4 example.com # IPv6 connectivity test karta hai
+ping -I eth0 -c 4 1.1.1.1 # Specific interface se ping bhejta hai
+ping -c 4 -s 1400 -M do 1.1.1.1 # Fragmentation allow kiye bina packet size test karta hai
+ping -c 4 -W 2 1.1.1.1 # Har reply ke liye timeout set karta hai
+traceroute -n 1.1.1.1 # DNS lookup ke bina network hops dikhata hai
+sudo traceroute -I example.com # ICMP packets se route trace karta hai
+sudo traceroute -T -p 443 example.com # TCP 443 packets se route trace karta hai
+tracepath example.com # Route aur path MTU discover karta hai
+mtr -rw -c 20 example.com # Hops ki latency aur packet loss report banata hai
+mtr -T -P 443 -rw -c 20 example.com # TCP 443 ke through path performance test karta hai
+
+03. ROUTING AND GATEWAY
+-----------------------
+ip route # IPv4 routing table dikhata hai
+ip -6 route # IPv6 routing table dikhata hai
+ip route show default # Default gateway dikhata hai
+ip route get 1.1.1.1 # Destination ke liye selected route, interface aur source IP dikhata hai
+ip route show table all # Sabhi routing tables dikhata hai
+ip rule show # Policy-based routing rules dikhata hai
+route -n # Legacy numeric routing table dikhata hai
+sudo ip route add 198.51.100.0/24 via 192.0.2.1 dev eth0 # CHANGE: Static route add karta hai; gateway reachable hona chahiye
+sudo ip route del 198.51.100.0/24 # CHANGE: Static route remove karta hai
+sudo ip route replace default via 192.0.2.1 dev eth0 # DANGER: Default gateway replace karta hai
+sudo ip route add default via 192.0.2.1 dev eth0 table 100 # CHANGE: Custom routing table mein gateway add karta hai
+sudo ip rule add from 192.0.2.10/32 table 100 priority 1000 # CHANGE: Source IP based routing configure karta hai
+sudo ip rule del priority 1000 # CHANGE: Example policy rule remove karta hai
+sysctl net.ipv4.ip_forward # IPv4 forwarding enabled hai ya nahi check karta hai
+sudo sysctl -w net.ipv4.ip_forward=1 # CHANGE: Temporary IPv4 forwarding enable karta hai
+sysctl net.ipv6.conf.all.forwarding # IPv6 forwarding status dikhata hai
+
+04. ARP AND NEIGHBOR DISCOVERY
+------------------------------
+ip neigh # IPv4 ARP aur IPv6 neighbor entries dikhata hai
+ip -4 neigh show # IPv4 neighbor cache dikhata hai
+ip -6 neigh show # IPv6 neighbor discovery cache dikhata hai
+arp -n # Legacy ARP table dikhata hai
+sudo arping -I eth0 -c 3 192.0.2.1 # Local Layer 2 par gateway ka ARP response test karta hai
+sudo arping -D -I eth0 -c 3 192.0.2.10 # Local network par duplicate IP check karta hai
+sudo ip neigh flush dev eth0 # CHANGE: Interface ki neighbor cache clear karta hai
+
+05. DNS RESOLUTION
+------------------
+dig example.com # DNS A record aur response details dikhata hai
+dig +short example.com # Sirf resolved answer dikhata hai
+dig example.com AAAA # IPv6 DNS record query karta hai
+dig example.com MX # Mail exchange records dikhata hai
+dig example.com TXT # TXT records dikhata hai
+dig example.com NS # Authoritative name servers dikhata hai
+dig example.com SOA # DNS zone authority information dikhata hai
+dig example.com CNAME # Alias record query karta hai
+dig -x 1.1.1.1 # Reverse DNS PTR lookup karta hai
+dig @1.1.1.1 example.com # Specific DNS resolver se query karta hai
+dig +tcp example.com # TCP ke through DNS query karta hai
+dig +trace example.com # Root se authoritative server tak DNS delegation trace karta hai
+dig +dnssec example.com # DNSSEC data request karta hai; khud validation prove nahi karta
+dig +noall +answer example.com # TTL aur answer records concise format mein dikhata hai
+nslookup example.com # Domain ka DNS lookup karta hai
+nslookup example.com 1.1.1.1 # Specific DNS server use karta hai
+host -t MX example.com # Mail DNS records resolve karta hai
+getent hosts example.com # System NSS configuration ke according host resolve karta hai
+getent ahostsv4 example.com # System resolver se IPv4 addresses dikhata hai
+cat /etc/resolv.conf # Configured resolver details dikhata hai
+cat /etc/hosts # Static hostname mapping dikhata hai
+cat /etc/nsswitch.conf # Host lookup ka order aur NSS sources dikhata hai
+resolvectl status # systemd-resolved ka DNS configuration dikhata hai
+resolvectl query example.com # Systemd resolver se lookup karta hai
+resolvectl statistics # DNS resolver statistics dikhata hai
+sudo resolvectl flush-caches # CHANGE: Local systemd DNS cache clear karta hai
+
+06. PORTS, SOCKETS AND CONNECTIONS
+---------------------------------
+ss -tuln # TCP/UDP listening ports numeric format mein dikhata hai
+sudo ss -tulnp # Listening sockets ke process names aur PID dikhata hai
+ss -tan # Sabhi TCP sockets aur states dikhata hai
+ss -uan # Sabhi UDP sockets dikhata hai
+ss -s # Socket statistics summary dikhata hai
+ss -tn state established # Established TCP connections dikhata hai
+ss -tn state time-wait # TIME_WAIT connections dikhata hai
+ss -tn state syn-recv # Pending TCP handshake connections dikhata hai
+ss -ltn 'sport = :80' # Port 80 par listening TCP sockets filter karta hai
+ss -tin # TCP RTT, congestion window aur retransmission details dikhata hai
+ss -xap # Unix domain sockets dikhata hai
+sudo lsof -i -P -n # Open network sockets aur owning processes dikhata hai
+sudo lsof -iTCP:443 -sTCP:LISTEN # HTTPS port listen karne wala process dikhata hai
+sudo fuser -v 80/tcp # Port 80 use karne wala process identify karta hai
+sudo netstat -tulnp # Legacy listening port inspection karta hai
+netstat -rn # Legacy routing table dikhata hai
+netstat -s # Protocol statistics dikhata hai
+nc -vz -w 3 example.com 443 # TCP 443 connection establish ho raha hai ya nahi test karta hai
+nc -vzu -w 3 192.0.2.10 53 # UDP probe bhejta hai; success definitive proof nahi hai
+nc -l 127.0.0.1 8080 # Local test listener start karta hai; syntax netcat variant par depend hai
+nc 127.0.0.1 8080 # Test listener se TCP connection establish karta hai
+
+07. HTTP, HTTPS AND API TESTING
+------------------------------
+curl -I https://example.com # HTTP response headers fetch karta hai
+curl -i https://example.com # Headers aur response body dono dikhata hai
+curl -v https://example.com # DNS, TCP, TLS aur HTTP details dikhata hai
+curl -L https://example.com # HTTP redirects follow karta hai
+curl -4 https://example.com # IPv4 connection force karta hai
+curl -6 https://example.com # IPv6 connection force karta hai
+curl --connect-timeout 5 --max-time 15 https://example.com # Connection aur overall timeout set karta hai
+curl -fsS https://example.com # HTTP error par failure return karta hai aur errors show karta hai
+curl -o /dev/null -sS -w '%{http_code}\n' https://example.com # Sirf HTTP status code dikhata hai
+curl -o /dev/null -sS -w 'DNS:%{time_namelookup} TCP:%{time_connect} TLS:%{time_appconnect} TTFB:%{time_starttransfer} Total:%{time_total}\n' https://example.com # Request ke har phase ki timing seconds mein dikhata hai
+curl --resolve app.example.com:443:192.0.2.10 https://app.example.com # DNS bypass karke specific IP test karta hai, SNI aur Host preserve hote hain
+curl -H 'Host: app.example.com' http://192.0.2.10 # HTTP virtual host routing test karta hai
+curl -H 'Content-Type: application/json' -d '{"name":"test"}' http://localhost:8080/api # Local API ko JSON POST request bhejta hai
+curl -x http://proxy.example.com:3128 https://example.com # HTTP proxy ke through request bhejta hai
+curl --noproxy '*' https://example.com # Configured proxy bypass karta hai
+curl --cacert ca.pem https://app.example.com # Custom trusted CA se certificate verify karta hai
+wget -O page.html https://example.com # Web page local file mein download karta hai
+wget --spider https://example.com # Resource availability check karta hai bina normal download ke
+
+08. TLS AND CERTIFICATES
+------------------------
+openssl s_client -connect example.com:443 -servername example.com -verify_hostname example.com -verify_return_error </dev/null # TLS handshake, hostname aur certificate trust verify karta hai
+openssl s_client -connect example.com:443 -servername example.com -showcerts </dev/null # Server ki bheji hui certificate chain dikhata hai
+openssl s_client -connect example.com:443 -servername example.com -tls1_2 </dev/null # TLS 1.2 handshake test karta hai
+openssl s_client -connect example.com:443 -servername example.com -tls1_3 </dev/null # TLS 1.3 handshake test karta hai
+openssl x509 -in cert.pem -noout -dates # Certificate validity dates dikhata hai
+openssl x509 -in cert.pem -noout -subject -issuer # Certificate owner aur issuer dikhata hai
+openssl x509 -in cert.pem -noout -ext subjectAltName # Certificate ke supported DNS names dikhata hai
+openssl verify -CAfile ca.pem cert.pem # Local certificate chain trust check karta hai
+
+09. PACKET CAPTURE
+------------------
+sudo tcpdump -D # Capture ke liye available interfaces dikhata hai
+sudo tcpdump -i any -nn -c 50 # DNS/service-name lookup ke bina 50 packets capture karta hai
+sudo tcpdump -i eth0 -nn host 192.0.2.10 # Specific host ka traffic capture karta hai
+sudo tcpdump -i eth0 -nn port 53 # DNS traffic capture karta hai
+sudo tcpdump -i eth0 -nn tcp port 443 # HTTPS TCP traffic capture karta hai
+sudo tcpdump -i eth0 -nn icmp # IPv4 ICMP packets capture karta hai
+sudo tcpdump -i eth0 -nn icmp6 # IPv6 ICMP packets capture karta hai
+sudo tcpdump -i eth0 -nn arp # ARP packets capture karta hai
+sudo tcpdump -i eth0 -nn 'tcp[tcpflags] & tcp-syn != 0' # TCP SYN flag wale packets capture karta hai
+sudo tcpdump -i eth0 -nn 'tcp[tcpflags] & tcp-rst != 0' # TCP reset packets identify karta hai
+sudo tcpdump -i any -s 0 -c 1000 -w capture.pcap # Full packets ko bounded capture file mein save karta hai
+sudo tcpdump -nn -r capture.pcap # Saved capture file read karta hai
+tshark -r capture.pcap -Y dns # Capture se DNS packets display filter karta hai
+tshark -r capture.pcap -Y tcp.analysis.retransmission # TCP retransmissions identify karta hai
+tshark -r capture.pcap -q -z conv,tcp # TCP conversations ka summary dikhata hai
+
+10. NETWORK PERFORMANCE
+-----------------------
+sar -n DEV 1 5 # Interface throughput aur packet rate sample karta hai
+sar -n EDEV 1 5 # Network errors aur drops monitor karta hai
+sar -n TCP,ETCP 1 5 # TCP connection aur retransmission statistics dikhata hai
+nstat -az # Kernel network protocol counters dikhata hai
+cat /proc/net/dev # Interface RX/TX counters dikhata hai
+cat /proc/net/softnet_stat # Kernel packet processing counters raw format mein dikhata hai
+sudo iftop -i eth0 # Real-time connection bandwidth dikhata hai
+sudo nethogs eth0 # Process-wise network bandwidth dikhata hai
+nload eth0 # Interface upload/download throughput dikhata hai
+vnstat -i eth0 # Collected historical interface traffic dikhata hai
+iperf3 -s # Authorized test server start karta hai, default TCP 5201
+iperf3 -c 192.0.2.10 -t 10 # Test server tak TCP throughput measure karta hai
+iperf3 -c 192.0.2.10 -R # Reverse direction throughput test karta hai
+iperf3 -c 192.0.2.10 -P 4 # Four parallel TCP streams se throughput test karta hai
+iperf3 -c 192.0.2.10 -u -b 10M # Controlled UDP test mein jitter aur loss measure karta hai
+sudo tc -s qdisc show dev eth0 # Traffic queue statistics aur drops dikhata hai
+sudo tc qdisc add dev eth0 root netem delay 100ms # DANGER: Lab interface par artificial latency inject karta hai; existing qdisc conflict ho sakta hai
+sudo tc qdisc del dev eth0 root # DANGER: Root traffic queue remove karta hai; sirf lab setup undo karne ke liye
+
+11. FIREWALL AND NAT
+--------------------
+sudo ufw status verbose # UFW firewall status aur rules dikhata hai
+sudo ufw status numbered # Firewall rules numbered format mein dikhata hai
+sudo ufw allow from 192.0.2.0/24 to any port 22 proto tcp # CHANGE: Trusted subnet se SSH allow karta hai
+sudo ufw allow 80/tcp # CHANGE: HTTP inbound allow karta hai
+sudo ufw allow 443/tcp # CHANGE: HTTPS inbound allow karta hai
+sudo ufw delete allow 80/tcp # CHANGE: HTTP allow rule remove karta hai
+sudo ufw enable # DANGER: Firewall enable karta hai; pehle SSH allow aur console access verify karo
+sudo nft list ruleset # nftables firewall aur NAT rules dikhata hai
+sudo nft list tables # nftables tables dikhata hai
+sudo nft -c -f firewall.nft # Existing rules file ko apply kiye bina validate karta hai
+sudo nft -f firewall.nft # DANGER: Validated firewall file apply karta hai
+sudo iptables -S # IPv4 filter rules dikhata hai
+sudo iptables -L -n -v --line-numbers # Filter rules ke counters aur line numbers dikhata hai
+sudo iptables -t nat -L -n -v # NAT rules aur counters dikhata hai
+sudo iptables -t mangle -S # Packet marking aur manipulation rules dikhata hai
+sudo ip6tables -S # IPv6 firewall rules dikhata hai
+sudo iptables-save # Current IPv4 rules export karta hai
+sudo iptables -I INPUT 1 -s 192.0.2.0/24 -p tcp --dport 22 -j ACCEPT # CHANGE: Trusted lab subnet ke SSH packets allow karta hai
+sudo iptables -D INPUT -s 192.0.2.0/24 -p tcp --dport 22 -j ACCEPT # CHANGE: Exact example rule delete karta hai
+sudo firewall-cmd --state # Firewalld service state dikhata hai
+sudo firewall-cmd --get-active-zones # Active zones aur interfaces dikhata hai
+sudo firewall-cmd --list-all # Default zone configuration dikhata hai
+sudo firewall-cmd --zone=public --add-service=http # CHANGE: Runtime HTTP access allow karta hai
+sudo firewall-cmd --zone=public --permanent --add-service=http # CHANGE: Persistent HTTP rule add karta hai
+sudo firewall-cmd --reload # CHANGE: Permanent firewall configuration reload karta hai
+sudo conntrack -L # Tracked network connections aur NAT state dikhata hai
+sudo conntrack -S # Connection tracking statistics dikhata hai
+sysctl net.netfilter.nf_conntrack_max # Maximum tracked connection limit dikhata hai
+
+12. NETWORK CONFIGURATION AND DHCP
+----------------------------------
+nmcli general status # NetworkManager ka overall status dikhata hai
+nmcli device status # Managed devices aur connections dikhata hai
+nmcli connection show # Saved connection profiles dikhata hai
+nmcli connection show --active # Active profiles dikhata hai
+nmcli device show eth0 # Interface ka IP, gateway aur DNS dikhata hai
+sudo nmcli connection up lab-connection # CHANGE: Existing profile activate karta hai
+sudo nmcli connection down lab-connection # DANGER: Profile deactivate karta hai
+sudo nmcli connection modify lab-connection ipv4.method auto # CHANGE: Profile ko DHCP par configure karta hai
+sudo nmcli connection modify lab-connection ipv4.method manual ipv4.addresses 192.0.2.10/24 ipv4.gateway 192.0.2.1 ipv4.dns 1.1.1.1 # CHANGE: Static IPv4 profile configure karta hai; activate karne par effect hoga
+networkctl list # systemd-networkd interfaces dikhata hai
+networkctl status eth0 # Interface ki networkd details dikhata hai
+sudo networkctl renew eth0 # CHANGE: DHCP configuration renew karta hai, networkd required hai
+sudo netplan get # Ubuntu Netplan configuration dikhata hai
+sudo netplan generate # Netplan backend configuration generate aur validate karta hai
+sudo netplan try # CHANGE: Temporary config apply karta hai aur confirmation na mile to rollback try karta hai
+sudo netplan apply # DANGER: Saved network config apply karta hai
+sudo dhclient -v eth0 # CHANGE: Legacy DHCP client se lease request karta hai; managed interface par conflict avoid karo
+sudo dhclient -r eth0 # DANGER: DHCP lease release karta hai
+
+13. VLAN, BRIDGE, BOND AND NAMESPACE
+------------------------------------
+bridge link show # Bridge ports aur states dikhata hai
+bridge vlan show # Bridge VLAN membership dikhata hai
+bridge fdb show # Bridge MAC forwarding database dikhata hai
+sudo ip link add link eth0 name eth0.100 type vlan id 100 # CHANGE: VLAN 100 subinterface create karta hai
+sudo ip link set eth0.100 up # CHANGE: VLAN interface enable karta hai
+sudo ip link del eth0.100 # CHANGE: Example VLAN interface remove karta hai
+sudo ip link add br-lab type bridge # CHANGE: Software bridge create karta hai
+sudo ip link set br-lab up # CHANGE: Bridge enable karta hai
+sudo ip link del br-lab # CHANGE: Lab bridge remove karta hai
+cat /proc/net/bonding/bond0 # Existing bond ka mode aur slave status dikhata hai
+sudo ip link add bond-lab type bond mode active-backup # CHANGE: Lab bonding interface create karta hai
+sudo ip link del bond-lab # CHANGE: Lab bond delete karta hai
+sudo ip netns add labns # CHANGE: Isolated network namespace create karta hai
+sudo ip netns list # Network namespaces dikhata hai
+sudo ip link add veth-lab type veth peer name veth-peer # CHANGE: Virtual Ethernet pair create karta hai
+sudo ip link set veth-peer netns labns # CHANGE: Peer interface namespace mein move karta hai
+sudo ip addr add 192.0.2.1/30 dev veth-lab # CHANGE: Host-side test IP configure karta hai
+sudo ip link set veth-lab up # CHANGE: Host-side link enable karta hai
+sudo ip -n labns addr add 192.0.2.2/30 dev veth-peer # CHANGE: Namespace-side test IP configure karta hai
+sudo ip -n labns link set veth-peer up # CHANGE: Namespace peer enable karta hai
+sudo ip -n labns link set lo up # CHANGE: Namespace loopback enable karta hai
+sudo ip netns exec labns ping -c 3 192.0.2.1 # Namespace se host-side link test karta hai
+sudo ip -n labns route # Namespace routing table dikhata hai
+sudo ip link del veth-lab # CHANGE: Lab veth pair remove karta hai
+sudo ip netns del labns # CHANGE: Lab namespace remove karta hai
+
+14. SSH AND FILE TRANSFER
+-------------------------
+ssh user@192.0.2.10 # Remote server par encrypted shell connect karta hai
+ssh -vvv user@192.0.2.10 # SSH authentication aur connection debugging karta hai
+ssh -p 2222 user@192.0.2.10 # Custom SSH port use karta hai
+ssh -i ~/.ssh/id_ed25519 user@192.0.2.10 # Specific private key use karta hai
+ssh-keygen -t ed25519 # SSH key pair generate karta hai; existing key overwrite mat karo
+ssh-copy-id user@192.0.2.10 # Authorized remote account mein public key install karta hai
+ssh -J user@bastion.example.com user@192.0.2.10 # Bastion host ke through SSH karta hai
+ssh -N -L 8080:127.0.0.1:80 user@192.0.2.10 # Local port forwarding se remote HTTP access karta hai
+ssh -N -D 1080 user@192.0.2.10 # Local SOCKS proxy establish karta hai
+scp file.txt user@192.0.2.10:/tmp/ # File securely remote server par copy karta hai
+sftp user@192.0.2.10 # Secure interactive file transfer session open karta hai
+rsync -avz -e ssh ./data/ user@192.0.2.10:/tmp/data/ # Incremental encrypted file synchronization karta hai
+sudo sshd -t # SSH server configuration validate karta hai
+
+15. DOCKER NETWORKING
+---------------------
+docker network ls # Docker networks list karta hai
+docker network inspect bridge # Default bridge configuration dikhata hai
+docker network create nginx-net # CHANGE: User-defined bridge create karta hai
+docker run -d --name nginx-netlab --network nginx-net -p 127.0.0.1:8080:80 nginx:latest # CHANGE: Nginx container local HTTP port par expose karta hai
+docker inspect nginx-netlab # Container IP, ports aur network settings dikhata hai
+docker port nginx-netlab # Published host ports dikhata hai
+docker exec nginx-netlab cat /etc/resolv.conf # Container DNS configuration dikhata hai
+docker run --rm --network nginx-net curlimages/curl http://nginx-netlab # Docker DNS aur container-to-container HTTP test karta hai
+docker network connect bridge nginx-netlab # CHANGE: Additional network attach karta hai
+docker network disconnect bridge nginx-netlab # CHANGE: Additional network detach karta hai
+docker rm -f nginx-netlab # CHANGE: Example container remove karta hai
+docker network rm nginx-net # CHANGE: Empty lab network remove karta hai
+
+16. KUBERNETES NETWORKING
+-------------------------
+kubectl get nodes -o wide # Nodes ke internal/external IP dikhata hai
+kubectl get pods -n nginx -o wide # Pod IP aur node placement dikhata hai
+kubectl get svc -n nginx # Service ClusterIP, ports aur type dikhata hai
+kubectl get endpointslices -n nginx # Service backend IP aur readiness information dikhata hai
+kubectl describe svc nginx-clusterip -n nginx # Service selector aur ports inspect karta hai
+kubectl get ingress -A # Cluster ke Ingress resources dikhata hai
+kubectl get ingressclass # Available Ingress classes dikhata hai
+kubectl get networkpolicy -A # NetworkPolicy resources dikhata hai
+kubectl get pods -n kube-system -o wide # DNS aur cluster networking components inspect karta hai
+kubectl logs -n kube-system -l k8s-app=kube-dns --tail=100 # CoreDNS logs dikhata hai, label cluster par depend hai
+kubectl run netcheck -n nginx --rm -it --restart=Never --image=busybox:1.36 -- nslookup nginx-clusterip.nginx.svc.cluster.local # Temporary Pod se Service DNS test karta hai
+kubectl run httpcheck -n nginx --rm -it --restart=Never --image=curlimages/curl -- curl -v http://nginx-clusterip # Cluster ke andar se HTTP test karta hai
+kubectl port-forward svc/nginx-clusterip 8080:80 -n nginx # Local port ko selected backend Pod tak forward karta hai
+kubectl get events -n nginx --sort-by=.metadata.creationTimestamp # Network aur scheduling related events inspect karta hai
+minikube ip # Minikube node IP dikhata hai
+minikube service nginx-clusterip -n nginx --url # Supported Service access URL show karta hai; ClusterIP exposure driver par depend hai
+minikube tunnel # LoadBalancer Service ke liye local route/tunnel maintain karta hai
+
+17. AUTHORIZED NETWORK DISCOVERY
+--------------------------------
+nmap -sn 192.0.2.0/28 # Authorized lab subnet par host discovery karta hai
+nmap -sT -p 22,80,443 192.0.2.10 # Specific host ke selected TCP ports test karta hai
+nmap -sV -p 80,443 192.0.2.10 # Authorized host ki service version detection karta hai
+sudo nmap -sU -p 53 192.0.2.10 # Authorized DNS host par UDP port scan karta hai
+
+18. SERVICES, PROXY AND NGINX
+------------------------------
+systemctl status nginx # Nginx service state dikhata hai
+sudo nginx -t # Nginx configuration syntax validate karta hai
+sudo nginx -T # Effective Nginx configuration dump karta hai; secrets ho sakte hain
+sudo systemctl reload nginx # CHANGE: Valid config ko graceful reload karta hai
+journalctl -u nginx -n 100 --no-pager # Nginx service ke recent logs dikhata hai
+sudo tail -f /var/log/nginx/access.log # Live HTTP access logs dikhata hai
+sudo tail -f /var/log/nginx/error.log # Live Nginx errors dikhata hai
+printenv | grep -i proxy # Proxy environment variables dikhata hai; credentials ho sakte hain
+export HTTPS_PROXY=http://proxy.example.com:3128 # CHANGE: Current shell ke HTTPS proxy variable set karta hai
+export NO_PROXY=localhost,127.0.0.1,.svc.cluster.local # CHANGE: Selected destinations par proxy bypass configure karta hai
+unset HTTPS_PROXY NO_PROXY # CHANGE: Example shell variables remove karta hai
+
+19. WIFI, VPN AND TIME SYNCHRONIZATION
+--------------------------------------
+iw dev # Wireless interfaces dikhata hai
+iw dev wlan0 link # Wi-Fi connection, signal aur bitrate dikhata hai
+nmcli device wifi list # Available Wi-Fi access points dikhata hai
+rfkill list # Wireless device blocked hai ya nahi check karta hai
+sudo wg show # WireGuard peer, handshake aur traffic statistics dikhata hai
+sudo ip xfrm state # IPsec security associations dikhata hai; output sensitive ho sakta hai
+sudo ip xfrm policy # IPsec traffic policies dikhata hai
+timedatectl status # System clock aur synchronization status dikhata hai
+chronyc tracking # NTP clock offset aur synchronization details dikhata hai
+chronyc sources -v # NTP sources aur reachability dikhata hai
+
+20. TOOL INSTALLATION AND DISCOVERY
+-----------------------------------
+sudo apt update # CHANGE: Ubuntu/Debian package index refresh karta hai
+sudo apt install iproute2 iputils-ping dnsutils traceroute mtr-tiny curl wget tcpdump netcat-openbsd ethtool lsof sysstat iperf3 nmap # CHANGE: Common Ubuntu/Debian networking tools install karta hai
+sudo dnf install iproute iputils bind-utils traceroute mtr curl wget tcpdump nmap-ncat ethtool lsof sysstat iperf3 nmap # CHANGE: RHEL family tools install karta hai; available repos required hain
+command -v ip # Command installed hai aur path kya hai check karta hai
+man ip-route # Routing command ka complete manual open karta hai
+ip link help # Interface commands ki supported syntax dikhata hai
+apropos network # Installed network-related manual entries search karta hai
+
+21. PRODUCTION TROUBLESHOOTING ORDER
+-------------------------------------
+# 1. ip -br a aur ip -s link: Link, IP aur packet errors check karo.
+# 2. ip route get DESTINATION: Selected path aur source IP check karo.
+# 3. getent hosts DOMAIN aur dig DOMAIN: DNS issue isolate karo.
+# 4. ping aur traceroute: ICMP aur path test karo; ICMP block hone se app down prove nahi hoti.
+# 5. nc -vz HOST PORT: TCP connectivity verify karo.
+# 6. ss -ltnp: Server par listener aur process verify karo.
+# 7. curl -v URL: TLS, HTTP aur application response check karo.
+# 8. Firewall, security groups, NACL, routes aur return path inspect karo.
+# 9. tcpdump: Authorized capture se SYN, SYN-ACK, RST aur retransmission inspect karo.
+# 10. sar, ss -ti, ethtool -S: Latency, congestion, drops aur NIC errors check karo.
+# 11. Kubernetes mein Service selector, EndpointSlice, readiness, DNS aur NetworkPolicy check karo.
+# 12. 502 upstream response issue, 503 unavailable backend, 504 upstream timeout ho sakta hai; logs se actual cause verify karo.
+# 13. Cloud firewall/NACL/security group changes host firewall se alag hote hain.
+# 14. Changes se pehle backup, rollback plan aur console access ready rakho.
+
+NOTE: Linux networking utilities distro, kernel, installed packages aur permissions ke hisab se vary karti hain. Commands examples hain; live environment mein execute/test nahi kiye gaye. Vendor-specific router/switch CLI aur cloud provider APIs ka exhaustive catalog scope mein nahi hai.
